@@ -1,0 +1,77 @@
+@keyframes caretFlashSmooth {
+
+    0%,
+    to {
+        opacity: 0.5
+    }
+
+    50% {
+        opacity: 0
+    }
+}
+
+* {
+    color: #888888;
+}
+
+@font-face {
+    font-family: 'UbuntuMono';
+    src: local('UbuntuMono'),
+        url('./Assets/fonts/UbuntuMono-R.ttf') format('truetype');
+    
+}
+
+
+.caret {
+    background-color: white;
+    width: 0.6em;
+    height: 1em;
+    position: absolute;
+    display: inline-block;
+    left: -0.034em;
+    top:0em;
+}
+
+.typeForm{
+    font-family: "UbuntuMono";
+}
+
+.caretWrapper {
+    display: inline;
+    position: relative;
+}
+
+.caretFlash {
+    animation: caretFlashSmooth 1s infinite;
+}
+
+.typeFormHiddenInput{
+    display: block;
+    margin: 0px;
+    padding: 0px;
+    width: 1em;
+    height: 1em;
+    border: none;
+    outline: none;
+    opacity: 0;
+    position:absolute;
+    top: -100vh;
+}
+
+.resultWrapper{
+    display: flex;
+    justify-content: center;
+}
+
+.resultElement{
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.typeFormBlur{
+    filter: blur(5px);
+}
+
+.hidden {
+    opacity: 0;
+}
