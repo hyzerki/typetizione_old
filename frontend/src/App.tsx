@@ -5,7 +5,7 @@ import TypeForm from './TypeForm'
 
 function App() {
   return (
-    <div className="App">
+    <div className="">
      <TypeForm/>
     </div>
   )
