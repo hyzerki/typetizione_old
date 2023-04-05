@@ -6,7 +6,7 @@ function TypeForm(props:any) {
     //Constants 
     const textToType: string = props.textToType;
     const textParts: Array<string> = textToType.split(" ");
-
+    
     //Text states 
     const [textLeftToType, setTextLeftToType] = React.useState(textToType);
     const [currentPart, setCurrentPart] = React.useState(0);
@@ -119,7 +119,7 @@ function TypeForm(props:any) {
 
     return (
         <React.Fragment>
-            <div className={`typeForm${isUserInputFocused? "": " typeFormBlur"}`} onClick={onClick}>
+            <div style={{fontSize:props.fontSize}} className={`typeForm${isUserInputFocused? "": " typeFormBlur"}`} onClick={onClick}>
                 {
                     resultTime ?
                         <div className="resultWrapper">
@@ -150,11 +150,11 @@ function TypeForm(props:any) {
                             </div>
                         </div>
                 }
-            </div>
+            </div> 
         </React.Fragment>
     );
 }
 
-TypeForm.defaultProps = {textToType:"The quick brown fox jumps over the lazy dog"}
+TypeForm.defaultProps = {textToType:"The quick brown fox jumps over the lazy dog", textHeight:"30px"}
 
 export default TypeForm;
