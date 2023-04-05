@@ -1,7 +1,7 @@
 create table users
 (
 	id serial primary key,
-	user_name varchar(20) unique not null check (char_length(userName)>=5)
+	user_name varchar(20) unique not null check (char_length(user_name)>=5),
 	rating smallint default(1000) not null,
 	password bytea not null,
 	salt bytea not null
@@ -29,12 +29,19 @@ create table games
 
 create table player_game_stats
 (
-	game_id serial references games(id),
+	game_id bigserial references games(id),
 	player_id serial references users(id),
 	rating smallint,
 	rating_gain smallint,
 	words_per_minute smallint,
 	accuracy numeric(3,2),
-	typing_time interval,
-	primary key(matchId, playerId)
+	typing_time int,
+	primary key(game_id, player_id)
 );
+
+drop table player_game_stats;
+drop table games;
+drop type game_type;
+drop table texts;
+drop type text_language;
+drop table users;
