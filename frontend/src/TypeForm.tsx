@@ -38,7 +38,7 @@ function TypeForm(props:any) {
                 isCaretPlaced = true;
             }
             if (input[i] === word[i]) {
-                result.push(<span key={i} style={{ color: "#cccccc" }}>{input[i]}</span>);
+                result.push(<span key={i} style={{ color: "#ffffff" }}>{input[i]}</span>);
             }
             else if (input[i] === undefined && word[i] !== undefined) {
                 result.push(<span key={i} style={{ color: "#888888" }}>{word[i]}</span>);
@@ -47,7 +47,7 @@ function TypeForm(props:any) {
                 result.push(<span key={i} style={{ color: "red" }}>{input[i]}</span>);
                 isErrorsMade = true;
             }
-            if (input[i + 1] === undefined && word[i + 1] === undefined) {
+            if (input[i] === undefined && word[i] === undefined) {
                 break;
             }
         }
@@ -119,7 +119,7 @@ function TypeForm(props:any) {
 
     return (
         <React.Fragment>
-            <div style={{fontSize:props.fontSize}} className={`typeForm${isUserInputFocused? "": " typeFormBlur"}`} onClick={onClick}>
+            <div style={{fontSize:props.fontSize, color: "#888888"}} className={`flex place-items-center justify-center h-full typeForm ${isUserInputFocused? "": "blur"} leading-none`} onClick={onClick}>
                 {
                     resultTime ?
                         <div className="resultWrapper">
@@ -127,7 +127,7 @@ function TypeForm(props:any) {
                             <div className="resultElement">acc. {(100 - (100 / (textToType.length / errorsAmount))).toFixed(2)}%</div>
                         </div>
                         :
-                        <div>
+                        <div className="overflow-hidden">
                             <div>
                                 <input
                                     type="text"
@@ -143,8 +143,8 @@ function TypeForm(props:any) {
                                     ref={userInputRef}
                                 />
                             </div>
-                            <div style={{ wordWrap: "break-word" }}>
-                                <span style={{ color: "#cccccc" }}>{commitedText}</span>
+                            <div className="break-words">
+                                <span style={{ color: "#ffffff" }}>{commitedText}</span>
                                 {createErrorMask(userInputText, textParts[currentPart])}
                                 {textLeftToType.replace(textParts[currentPart], "")}
                             </div>
