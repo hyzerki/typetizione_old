@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model friendrelation {
+  friendone                               Int     @default(autoincrement())
+  friendtwo                               Int     @default(autoincrement())
+  isaccepted                              Boolean
+  player_friendrelation_friendoneToplayer player  @relation("friendrelation_friendoneToplayer", fields: [friendone], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player_friendrelation_friendtwoToplayer player  @relation("friendrelation_friendtwoToplayer", fields: [friendtwo], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([friendone, friendtwo])
+}
+
+model game {
+  id              BigInt            @id @default(autoincrement())
+  type            gametype
+  datetime        DateTime          @default(now()) @db.Timestamp(6)
+  textid          Int               @default(autoincrement())
+  text            text              @relation(fields: [textid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  playergamestats playergamestats[]
+}
+
+model player {
+  id                                              Int               @id @default(autoincrement())
+  username                                        String            @unique @db.VarChar(20)
+  rating                                          Int               @default(1000) @db.SmallInt
+  password                                        String            @db.VarChar(64)
+  salt                                            String            @db.VarChar(64)
+  friendrelation_friendrelation_friendoneToplayer friendrelation[]  @relation("friendrelation_friendoneToplayer")
+  friendrelation_friendrelation_friendtwoToplayer friendrelation[]  @relation("friendrelation_friendtwoToplayer")
+  playergamestats                                 playergamestats[]
+}
+
+model playergamestats {
+  gameid         BigInt   @default(autoincrement())
+  playerid       Int      @default(autoincrement())
+  rating         Int?     @db.SmallInt
+  ratinggain     Int?     @db.SmallInt
+  wordsperminute Int?     @db.SmallInt
+  accuracy       Decimal? @db.Decimal(3, 2)
+  typingtime     Int?
+  game           game     @relation(fields: [gameid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player         player   @relation(fields: [playerid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([gameid, playerid])
+}
+
+model text {
+  id           Int          @id @default(autoincrement())
+  text         String       @unique
+  textlanguage textlanguage
+  textlength   Int?         @db.SmallInt
+  game         game[]
+}
+
+enum gametype {
+  casual
+  ranked
+  training
+}
+
+enum textlanguage {
+  russian
+  english
+}
