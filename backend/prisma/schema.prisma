@@ -30,8 +30,8 @@ model player {
   id                                              Int               @id @default(autoincrement())
   username                                        String            @unique @db.VarChar(20)
   rating                                          Int               @default(1000) @db.SmallInt
-  password                                        String            @db.VarChar(64)
-  salt                                            String            @db.VarChar(64)
+  password                                        Bytes
+  salt                                            Bytes
   friendrelation_friendrelation_friendoneToplayer friendrelation[]  @relation("friendrelation_friendoneToplayer")
   friendrelation_friendrelation_friendtwoToplayer friendrelation[]  @relation("friendrelation_friendtwoToplayer")
   playergamestats                                 playergamestats[]
