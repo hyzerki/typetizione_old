@@ -3,13 +3,22 @@ create table Player
 	Id serial primary key,
 	UserName varchar(20) unique not null check (char_length(UserName)>=5),
 	Rating smallint default(1000) not null,
-	Password varchar(64) not null,
-	Salt varchar(64) not null
+	Password bytea not null,
+	Salt bytea not null
+);
+
+create table RefreshTokenList
+(
+	PlayerId int not null references Player(Id),
+	RefreshToken text not null,
+	IsUsed bool default(false) not null,
+	Emitted timestamp default current_timestamp not null,
+	primary key(PlayerId, RefreshToken)
 );
 
 create table FriendRelation(
-	FriendOne serial references Player(Id),
-	FriendTwo serial references Player(Id),
+	FriendOne int references Player(Id),
+	FriendTwo int references Player(Id),
 	IsAccepted boolean not null,
 	primary key (FriendOne, FriendTwo)
 );
@@ -31,13 +40,13 @@ create table Game
 	Id bigserial primary key,
 	Type GameType not null,
 	DateTime timestamp default current_timestamp not null,
-	TextId serial references Text(Id) not null
+	TextId int references Text(Id) not null
 );
 
 create table PlayerGameStats
 (
-	GameId bigserial references Game(id),
-	PlayerId serial references Player(id),
+	GameId bigint references Game(id),
+	PlayerId int references Player(id),
 	Rating smallint,
 	RatingGain smallint,
 	WordsPerMinute smallint,
@@ -52,4 +61,5 @@ drop type GameType;
 drop table Text;
 drop type TextLanguage;
 drop table FriendRelation;
+drop table RefreshTokenList;
 drop table Player;
