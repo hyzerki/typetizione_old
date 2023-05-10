@@ -7,65 +7,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model friendrelation {
-  friendone                               Int     @default(autoincrement())
-  friendtwo                               Int     @default(autoincrement())
-  isaccepted                              Boolean
-  player_friendrelation_friendoneToplayer player  @relation("friendrelation_friendoneToplayer", fields: [friendone], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player_friendrelation_friendtwoToplayer player  @relation("friendrelation_friendtwoToplayer", fields: [friendtwo], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([friendone, friendtwo])
-}
-
 model game {
-  id              BigInt            @id @default(autoincrement())
-  type            gametype
-  datetime        DateTime          @default(now()) @db.Timestamp(6)
-  textid          Int               @default(autoincrement())
-  text            text              @relation(fields: [textid], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  playergamestats playergamestats[]
+  id                BigInt              @id @default(autoincrement())
+  type              game_type
+  date_time         DateTime            @default(now()) @db.Timestamp(6)
+  text_id           Int
+  text_to_type      text_to_type        @relation(fields: [text_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player_game_stats player_game_stats[]
 }
 
 model player {
-  id                                              Int               @id @default(autoincrement())
-  username                                        String            @unique @db.VarChar(20)
-  rating                                          Int               @default(1000) @db.SmallInt
-  password                                        Bytes
-  salt                                            Bytes
-  friendrelation_friendrelation_friendoneToplayer friendrelation[]  @relation("friendrelation_friendoneToplayer")
-  friendrelation_friendrelation_friendtwoToplayer friendrelation[]  @relation("friendrelation_friendtwoToplayer")
-  playergamestats                                 playergamestats[]
+  id                                                 Int                 @id @default(autoincrement())
+  username                                           String              @unique @db.VarChar(20)
+  rating                                             Int                 @default(1000) @db.SmallInt
+  password                                           Bytes
+  salt                                               Bytes
+  friend_relation_friend_relation_friend_oneToplayer friend_relation[]   @relation("friend_relation_friend_oneToplayer")
+  friend_relation_friend_relation_friend_twoToplayer friend_relation[]   @relation("friend_relation_friend_twoToplayer")
+  player_game_stats                                  player_game_stats[]
+  refreshtoken                                       refreshtoken[]
 }
 
-model playergamestats {
-  gameid         BigInt   @default(autoincrement())
-  playerid       Int      @default(autoincrement())
-  rating         Int?     @db.SmallInt
-  ratinggain     Int?     @db.SmallInt
-  wordsperminute Int?     @db.SmallInt
-  accuracy       Decimal? @db.Decimal(3, 2)
-  typingtime     Int?
-  game           game     @relation(fields: [gameid], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player         player   @relation(fields: [playerid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model friend_relation {
+  friend_one                                Int
+  friend_two                                Int
+  is_accepted                               Boolean
+  player_friend_relation_friend_oneToplayer player  @relation("friend_relation_friend_oneToplayer", fields: [friend_one], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player_friend_relation_friend_twoToplayer player  @relation("friend_relation_friend_twoToplayer", fields: [friend_two], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([gameid, playerid])
+  @@id([friend_one, friend_two])
 }
 
-model text {
-  id           Int          @id @default(autoincrement())
-  text         String       @unique
-  textlanguage textlanguage
-  textlength   Int?         @db.SmallInt
-  game         game[]
+model player_game_stats {
+  game_id     BigInt
+  player_id   Int
+  rating      Int?     @db.SmallInt
+  rating_gain Int?     @db.SmallInt
+  wpm         Int?     @db.SmallInt
+  cpm         Int?     @db.SmallInt
+  accuracy    Decimal? @db.Decimal(5, 2)
+  typing_time Int?
+  game        game     @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player      player   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([game_id, player_id])
 }
 
-enum gametype {
+model refreshtoken {
+  player_id Int
+  token_str String
+  is_used   Boolean  @default(false)
+  emitted   DateTime @default(now()) @db.Timestamp(6)
+  player    player   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([player_id, token_str])
+}
+
+model text_to_type {
+  id            Int           @id @default(autoincrement())
+  text          String        @unique
+  text_language text_language
+  text_length   Int?          @db.SmallInt
+  game          game[]
+}
+
+enum game_type {
   casual
   ranked
   training
 }
 
-enum textlanguage {
+enum text_language {
   russian
   english
 }

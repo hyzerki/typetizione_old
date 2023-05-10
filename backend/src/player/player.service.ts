@@ -12,7 +12,7 @@ export class PlayerService {
   async findOne(
     playerWhereUniqueInput: Prisma.playerWhereUniqueInput,
   ): Promise<player | null> {
-    return this.prisma.player.findUnique({ where: playerWhereUniqueInput });
+    return  this.prisma.player.findUnique({ where: playerWhereUniqueInput });
   }
 
   async registerPlayer(signUpDto: SignUpDto): Promise<player> {
