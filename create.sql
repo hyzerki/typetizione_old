@@ -1,65 +1,66 @@
-create table Player
+create table player
 (
-	Id serial primary key,
-	UserName varchar(20) unique not null check (char_length(UserName)>=5),
-	Rating smallint default(1000) not null,
-	Password bytea not null,
-	Salt bytea not null
+	id serial primary key,
+	username varchar(20) unique not null check (char_length(username)>=5),
+	rating smallint default(1000) not null,
+	password bytea not null,
+	salt bytea not null
 );
 
-create table RefreshTokenList
+create table refreshtoken
 (
-	PlayerId int not null references Player(Id),
-	RefreshToken text not null,
-	IsUsed bool default(false) not null,
-	Emitted timestamp default current_timestamp not null,
-	primary key(PlayerId, RefreshToken)
+	player_id int not null references player(id),
+	token_str text not null,
+	is_used bool default(false) not null,
+	emitted timestamp default current_timestamp not null,
+	primary key(player_id, token_str)
 );
 
-create table FriendRelation(
-	FriendOne int references Player(Id),
-	FriendTwo int references Player(Id),
-	IsAccepted boolean not null,
-	primary key (FriendOne, FriendTwo)
+create table friend_relation(
+	friend_one int references player(id),
+	friend_two int references player(id),
+	is_accepted boolean not null,
+	primary key (friend_one, friend_two)
 );
 
-create type TextLanguage as enum('russian', 'english');
+create type text_language as enum('russian', 'english');
 
-create table Text
+create table text_to_type
 (
-	Id serial primary key,
-	Text text not null unique check(Text != ''),
-	TextLanguage TextLanguage not null,
-	TextLength smallint
+	id serial primary key,
+	text text not null unique check(text != ''),
+	text_language text_language not null,
+	text_length smallint
 );
 
-create type GameType as enum('casual', 'ranked', 'training');
+create type game_type as enum('casual', 'ranked', 'training');
 
-create table Game
+create table game
 (
-	Id bigserial primary key,
-	Type GameType not null,
-	DateTime timestamp default current_timestamp not null,
-	TextId int references Text(Id) not null
+	id bigserial primary key,
+	type game_type not null,
+	date_time timestamp default current_timestamp not null,
+	text_id int references text_to_type(id) not null
 );
 
-create table PlayerGameStats
+create table player_game_stats
 (
-	GameId bigint references Game(id),
-	PlayerId int references Player(id),
-	Rating smallint,
-	RatingGain smallint,
-	WordsPerMinute smallint,
-	Accuracy numeric(3,2),
-	TypingTime int,
-	primary key(GameId, PlayerId)
+	game_id bigint references game(id),
+	player_id int references player(id),
+	rating smallint,
+	rating_gain smallint,
+	wpm smallint,
+	cpm smallint,
+	accuracy numeric(5,2),
+	typing_time int,
+	primary key(game_id, player_id)
 );
 
-drop table PlayerGameStats;
-drop table Game;
-drop type GameType;
-drop table Text;
-drop type TextLanguage;
-drop table FriendRelation;
-drop table RefreshTokenList;
-drop table Player;
+drop table player_game_stats;
+drop table game;
+drop type game_type;
+drop table text_to_type;
+drop type text_language;
+drop table friend_relation;
+drop table refreshtoken;
+drop table player;
