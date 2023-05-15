@@ -20,7 +20,7 @@ export class AuthService {
       username: username,
     });
     if (!player) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("User with this username does not exists.");
     }
     if (
       await !argon2.verify(
@@ -28,7 +28,7 @@ export class AuthService {
         player.salt.toString() + pass,
       )
     ) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Wrong password.");
     }
     const payload = { username: player.username, sub: player.id };
     return this.generateTokenPair(payload);
@@ -58,17 +58,17 @@ export class AuthService {
   async refresh(req: Request): Promise<any> {
     const refreshToken: string = this.extractTokenFromHeader(req);
     if (!refreshToken) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Refresh token is not passed to Authorization header (\"Authorization\" : \"Bearer [token]\").");
     }
     let payload: { username: string, sub: number, };
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, { secret: process.env.JWT_REFRESH_SECRET });
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Can`t verify refresh token.");
     }
     let tokenEntry: refreshtoken = await this.prisma.refreshtoken.findUnique({ where: { player_id_token_str: { player_id: payload.sub, token_str: refreshToken } } });
     if (tokenEntry?.is_used) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Refresh token has been already used.");
     }
     await this.prisma.refreshtoken.update({ where: { player_id_token_str: { player_id: payload.sub, token_str: refreshToken } }, data: { is_used: true } });
     payload = { username: payload.username, sub: payload.sub };
