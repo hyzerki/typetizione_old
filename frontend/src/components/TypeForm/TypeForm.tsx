@@ -1,6 +1,6 @@
 import React from "react";
 import "./TypeForm.css";
-import "./Assets/fonts/UbuntuMono-R.ttf";
+import "../../assets/fonts/UbuntuMono-R.ttf";
 
 function TypeForm(props:any) {
     //Constants 
