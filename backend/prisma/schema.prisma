@@ -17,23 +17,23 @@ model game {
 }
 
 model player {
-  id                                                 Int                 @id @default(autoincrement())
-  username                                           String              @unique @db.VarChar(20)
-  rating                                             Int                 @default(1000) @db.SmallInt
-  password                                           Bytes
-  salt                                               Bytes
-  friend_relation_friend_relation_friend_oneToplayer friend_relation[]   @relation("friend_relation_friend_oneToplayer")
-  friend_relation_friend_relation_friend_twoToplayer friend_relation[]   @relation("friend_relation_friend_twoToplayer")
-  player_game_stats                                  player_game_stats[]
-  refreshtoken                                       refreshtoken[]
+  id                  Int                 @id @default(autoincrement())
+  username            String              @unique @db.VarChar(20)
+  rating              Int                 @default(1000) @db.SmallInt
+  password            Bytes
+  salt                Bytes
+  initiated_relations friend_relation[]   @relation("friend_relation_friend_oneToplayer")
+  proposed_relations  friend_relation[]   @relation("friend_relation_friend_twoToplayer")
+  player_game_stats   player_game_stats[]
+  refreshtoken        refreshtoken[]
 }
 
 model friend_relation {
   friend_one                                Int
   friend_two                                Int
-  is_accepted                               Boolean
-  player_friend_relation_friend_oneToplayer player  @relation("friend_relation_friend_oneToplayer", fields: [friend_one], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player_friend_relation_friend_twoToplayer player  @relation("friend_relation_friend_twoToplayer", fields: [friend_two], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  is_accepted                               Boolean @default(false)
+  related_player_one player  @relation("friend_relation_friend_oneToplayer", fields: [friend_one], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  related_player_two player  @relation("friend_relation_friend_twoToplayer", fields: [friend_two], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([friend_one, friend_two])
 }

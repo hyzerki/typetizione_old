@@ -16,28 +16,28 @@ export class AuthService {
   ) { }
 
   async signIn(username: string, pass: string): Promise<any> {
-    const player: player = await this.playerService.findOne({
+    const player: player = await this.playerService.findFullPlayer({
       username: username,
     });
     if (!player) {
       throw new UnauthorizedException("User with this username does not exists.");
     }
     if (
-      await !argon2.verify(
+      !(await argon2.verify(
         player.password.toString(),
         player.salt.toString() + pass,
-      )
+      ))
     ) {
       throw new UnauthorizedException("Wrong password.");
     }
     const payload = { username: player.username, sub: player.id };
-    return this.generateTokenPair(payload);
+    return await this.generateTokenPair(payload);
   }
 
   async signUp(signUpDto: SignUpDto): Promise<any> {
     const player: player = await this.playerService.registerPlayer(signUpDto);
     const payload = { username: player.username, sub: player.id };
-    return this.generateTokenPair(payload);
+    return await this.generateTokenPair(payload);
   }
 
   async logout(req: Request): Promise<void> {
@@ -72,7 +72,7 @@ export class AuthService {
     }
     await this.prisma.refreshtoken.update({ where: { player_id_token_str: { player_id: payload.sub, token_str: refreshToken } }, data: { is_used: true } });
     payload = { username: payload.username, sub: payload.sub };
-    return this.generateTokenPair(payload);
+    return await this.generateTokenPair(payload);
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
@@ -91,8 +91,8 @@ export class AuthService {
     await this.prisma.refreshtoken.create({ data: { player_id: payload.sub, token_str: refresh_token } });
     let access_token = await this.jwtService.signAsync(payload);
     return {
-      access_token: access_token,
-      refresh_token: refresh_token,
+      access_token,
+      refresh_token,
     };
   }
 }
