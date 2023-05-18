@@ -19,7 +19,7 @@ create table refreshtoken
 create table friend_relation(
 	friend_one int references player(id),
 	friend_two int references player(id),
-	is_accepted boolean not null,
+	is_accepted boolean default(false) not null,
 	primary key (friend_one, friend_two)
 );
 
