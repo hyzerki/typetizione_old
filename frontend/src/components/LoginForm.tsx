@@ -1,24 +1,31 @@
 import React from "react";
-import { login } from "../service/authService";
-import Player from "../model/player";
-import history from "../helpers/history"
+import { Link, useNavigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
+import authService from "../service/authService";
+import { AxiosError, HttpStatusCode } from "axios";
 
-function AuthenticationForm(props: any) {
+function LoginForm(props: any) {
 
     const [userName, setUserName] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [loginError, setLoginError] = React.useState("");
+    const navigator = useNavigate();
 
 
     const onSubmit = async (e: any) => {
         e.preventDefault();
         try {
-            const player: Player = await login(userName, password);
-            localStorage.setItem("player_id", player.id.toString());
-            const { from } = history.location.state || { from: { pathname: '/' } } as any;
-            history.push(from)
+            const response = await authService.login(userName, password);
+            navigator("/");
         } catch (error: any) {
-            setLoginError(error.message);
+            if (error instanceof AxiosError) {
+                if (error.response) {
+                    setLoginError(error.response.data.message);
+                    return;
+                }
+                setLoginError(error.message);
+            }
+
         }
     }
 
@@ -52,10 +59,17 @@ function AuthenticationForm(props: any) {
                             null
                     }
                 </React.Suspense>
-                <input className="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" type="submit" />
+                <div className="flex flex-row">
+                    <div>
+                        <input value="Войти" className="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" type="submit" />
+                    </div>
+                    <div>
+                        <Link to='/auth/register'>К регистрации</Link>
+                    </div>
+                </div>
             </form>
         </div>
     );
 }
 
-export default AuthenticationForm;
+export default LoginForm;
