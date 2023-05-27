@@ -6,7 +6,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 @Controller('player')
 export class PlayerController {
     constructor(private playerService:PlayerService){}
-
+    
     @Get(":id")
     getOne(@Param() params: any){
         return this.playerService.findOne({id: parseInt(params.id)});
