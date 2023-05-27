@@ -1,15 +1,18 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import SideOver from "../../components/SideOver";
 import AuthService from "../../service/authService";
 import { currentPlayerState } from "../../state/currentPlayerState";
 import AuthPage from "./AuthPage/AuthPage";
 import MainPage from "./MainPage";
+import { websocketState } from "../../state/websocketState";
+import { io } from "socket.io-client";
 
 function MenuPage() {
     const [open, setOpen] = React.useState(false)
     const currentPlayer = useRecoilValue(currentPlayerState);
+
 
     function openSideover(event: React.MouseEvent<HTMLInputElement, MouseEvent>) {
         setOpen(true);
@@ -21,6 +24,8 @@ function MenuPage() {
     async function logout() {
         await AuthService.logout();
     }
+
+    
 
     return (
         <div className='h-screen flex flex-col'>

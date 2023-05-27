@@ -1,7 +1,7 @@
 import { useRecoilValue } from "recoil";
 import { currentPlayerState } from "../../../state/currentPlayerState";
 import { friendlistSelector } from "../../../selectors/friendlistSelector";
-import { Fragment } from "react";
+import { Fragment, useRef } from "react";
 
 
 
@@ -21,7 +21,7 @@ function Friendlist() {
                 </div>
                 <div className="flex gap-2">
                     <div className="border px-1">
-                        <input value="пригласить" type="button"  />
+                        <input value="пригласить" type="button" />
                     </div>
                     <div className="border w-6 px-2">
                         <input value="X" type="button" />
@@ -35,7 +35,7 @@ function Friendlist() {
         //todo отклонение запроса
         //todo принятие запроса
         return (
-            <div className="flex">
+            <div id={props.id} className="flex">
                 <div className="w-full">
                     {props.player.username}
                 </div>
@@ -54,8 +54,10 @@ function Friendlist() {
 
     function OutgoingRequest(props: any) {
         //todo отмена исходящего запроса
+        const idRef = useRef(0);
+        idRef.current++;
         return (
-            <div className="flex">
+            <div id={idRef.current.toString()} className="flex">
                 <div className="w-full">
                     {props.player.username}
                 </div>
@@ -70,6 +72,28 @@ function Friendlist() {
     }
 
 
+
+    function getFriends() {
+        let initiated = friendListData.initiated_relations.filter((relation: any) => relation.is_accepted);
+        let proposed = friendListData.proposed_relations.filter((relation: any) => relation.is_accepted);
+        initiated = initiated.map((rel: any) => rel.related_player_two);
+        proposed = proposed.map((rel: any) => rel.related_player_one);
+        let full = [...initiated, ...proposed];
+        full.sort((a: any, b: any) => {
+            if (a.username < b.username) {
+                return -1;
+            }
+            if (a.username > b.username) {
+                return 1;
+            }
+            return 0;
+        })
+        return full;
+    }
+
+
+
+
     if (!!!currentPlayer) {
         return (
             <div className="text-3xl text-white ml-4">
@@ -78,18 +102,10 @@ function Friendlist() {
         )
     }
 
-    function getFriends() {
-        let initiated = friendListData.initiated_relations.filter((relation: any) => relation.is_accepted);
-        let proposed = friendListData.proposed_relations.filter((relation: any) => relation.is_accepted);
-        initiated = initiated.map((rel: any) => rel.related_player_two);
-        proposed = proposed.map((rel: any) => rel.related_player_one);
-        return [...initiated, ...proposed];
-    }
 
     const outgoingRequests = friendListData.initiated_relations.filter((relation: any) => !relation.is_accepted);
     const incomingRequests = friendListData.proposed_relations.filter((relation: any) => !relation.is_accepted);
     const friends = getFriends();
-
 
 
     return (
@@ -111,10 +127,10 @@ function Friendlist() {
                         <div>Запросы на добавление в друзья:</div>
                         {
                             incomingRequests.map((relation: any) => (
-                                <IncomingRequest player={relation.related_player_one} />
+                                <IncomingRequest key={relation.related_player_one.id} player={relation.related_player_one} />
                             ))
                         }
-                        <hr />  
+                        <hr />
                     </Fragment>
                     : null
                 }
@@ -122,8 +138,8 @@ function Friendlist() {
 
             <div>
                 <div>Друзья</div>
-                {friends.map((friend: any) => (
-                    <Friend player={friend}/>
+                {friends.map((friend: any,) => (
+                    <Friend key={friend.id} player={friend} />
                 ))}
             </div>
 
@@ -133,8 +149,8 @@ function Friendlist() {
                         <hr />
                         <div>Исходящие запросы:</div>
                         {
-                            outgoingRequests.map((relation: any) => (
-                                <OutgoingRequest player={relation.related_player_two} />
+                            outgoingRequests.map((relation: any, index: string) => (
+                                <OutgoingRequest key={relation.related_player_two.id} player={relation.related_player_two} />
                             ))}
                     </Fragment>
                     : null
