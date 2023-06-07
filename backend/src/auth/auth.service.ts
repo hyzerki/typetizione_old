@@ -88,7 +88,11 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: '7d',
     });
-    await this.prisma.refreshtoken.create({ data: { player_id: payload.sub, token_str: refresh_token } });
+    await this.prisma.refreshtoken.upsert({
+      where:  {player_id_token_str:{player_id:payload.sub, token_str:refresh_token}},
+      update: { is_used:false } ,
+      create: { player_id: payload.sub, token_str: refresh_token } 
+    });
     let access_token = await this.jwtService.signAsync(payload);
     return {
       access_token,
@@ -96,3 +100,4 @@ export class AuthService {
     };
   }
 }
+

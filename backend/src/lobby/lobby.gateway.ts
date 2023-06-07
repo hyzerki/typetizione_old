@@ -1,5 +1,7 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from "Socket.IO";
+import uuid from "uuid";
+import { LobbyService } from './lobby.service';
 
 interface Player {
   player_id: string;
@@ -23,7 +25,9 @@ const lobbies: Map<string, Lobby> = new Map();
   serveClient: false,
   namespace: "lobby",
 })
-export default class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+
+  constructor(private lobbyService: LobbyService) { }
 
   @WebSocketServer()
   server: Server;
@@ -31,7 +35,7 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
 
 
   afterInit(server: Server) {
-    
+
   }
 
 
@@ -51,20 +55,28 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
    * @param client Клиент, который принял приглашение в лобби
    * @param payload  Идентификатор пользователя, в лобби которому надо подключиться
    */
-  @SubscribeMessage("accept_invite")
-  handleAcceptInvite(client: Socket, payload: any) {
+  @SubscribeMessage("join_lobby")
+  handleJoinLobby(client: Socket, payload: any) {
     const player_id = client.data.player_id as string;
     const username = client.data.username as string;
     const currentLobbyId = client.data.lobby_id as string;
-    const newLobby = [...lobbies.values()].find(entry => entry.players.some(player => player.player_id === payload));
+    const newLobby = [...lobbies.values()].find(entry => entry.players.some(player => player.player_id == payload));
+    console.log("payload", payload)
     const currentLobby = lobbies.get(currentLobbyId);
 
-    //fix возможность присоединиться в текущее лобби
 
+    console.log("currentLobby ", currentLobby);
+    console.log("newLobby", newLobby);
+    //fix возможность присоединиться в текущее лобби
+    if (currentLobby.id === newLobby.id) {
+      return;
+    }
+    
     if (currentLobby.players.length <= 1) {
       lobbies.delete(currentLobbyId);
     } else {
       currentLobby.players = currentLobby.players.filter(p => p.player_id != player_id);
+      this.server.to(currentLobby.id).emit("lobby_changed", lobbies.get(currentLobby.id));
       this.server.to(currentLobby.id).emit("log", `Игрок ${username} покинул группу.`)
     }
     client.leave(currentLobbyId);
@@ -72,6 +84,7 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
     client.data.lobby_id = newLobby.id;
     lobbies.get(newLobby.id).players.push({ player_id, username });
     client.join(newLobby.id);
+    this.server.to(newLobby.id).emit("lobby_changed", lobbies.get(newLobby.id));
     this.server.to(newLobby.id).emit("log", `Игрок ${username} присоединился к группе.`)
   }
 
@@ -81,7 +94,7 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
    * @param args 
    */
   handleConnection(client: Socket, ...args: any[]) {
-    console.log("New client");
+    console.log("New client!");
     const player_id = client.handshake.query.player_id as string;
     const username = client.handshake.query.username as string;
     console.log(client.handshake.query);
@@ -90,10 +103,11 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
     client.data.lobby_id = client.id;
     lobbies.set(client.id, { id: client.id, players: [{ player_id, username }] });
     client.join(player_id);
+    this.server.to(client.id).emit("lobby_changed", lobbies.get(client.id));
     console.log(client.rooms)
   }
 
-  
+
 
   /**
    * При отключении игрок удаляется из лобби и если лобби остаётся пустым мы лобби удаляем.
@@ -111,6 +125,7 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
       return;
     }
     lobby.players = lobby.players.filter(p => p.player_id != player_id);
+    this.server.to(lobby_id).emit("lobby_changed", lobbies.get(lobby_id));
     this.server.to(lobby_id).emit("log", `Игрок ${username} покинул группу (Disconnect).`);
   }
 
@@ -123,23 +138,52 @@ export default class AppGateway implements OnGatewayInit, OnGatewayConnection, O
   handleMessage(client: Socket, payload: any) {
     console.log(client.data);
     console.log("message: ", payload);
-    this.server.to(client.data.lobby_id).emit("message", { data: client.data, text:payload });
+    this.server.to(client.data.lobby_id).emit("message", { data: client.data, text: payload });
     console.log("sent");
   }
 
+  @SubscribeMessage("leave_lobby")
+  handleLeaveLobby(client: Socket, payload: any) {
+    //todo способ покинуть лобби: выйти из старого, сгенерить uuid нового лобби и войти в него)
+
+    // uuid.v4();
+    const player_id = client.data.player_id as string;
+    const username = client.data.username as string;
+    const currentLobbyId = client.data.lobby_id as string;
+    const newLobbyId = this.lobbyService.generateNewLobbyUUID();
+    const currentLobby = lobbies.get(currentLobbyId);
 
 
+    if (currentLobby.players.length <= 1) {
+      lobbies.delete(currentLobbyId);
+    } else {
+      currentLobby.players = currentLobby.players.filter(p => p.player_id != player_id);
+      this.server.to(currentLobby.id).emit("lobby_changed", lobbies.get(currentLobby.id));
+      this.server.to(currentLobby.id).emit("log", `Игрок ${username} покинул группу.`)
+    }
+    client.leave(currentLobbyId);
+    //fix хуйня здесь: массив плеерс пустой
+    lobbies.set(newLobbyId, { id: newLobbyId, players: [{ player_id, username }] });
+    console.log("Новое лобби: ", lobbies.get(newLobbyId));
 
-/**
- * Начинает поиск, создаёт объект в котором хранится как и в лобби список игроков и нижняя и верхняя граница поиска.
- * Граница: самый большой рейтинг в группе +300 и самый маленьгий -300.
- * Границы рейтинга расширяются каждые 10сек по +100 и -100 и во время расширения снова проверяются все игроки в поиске, для нахождения подходящего вод границы.
- * Так же при подключении игрока в поиск проверяется, подходит ли он по рейтингу к уже существующим группам, ведущим поиск
- * @param client игрок, нажавший кнопку поиска
- * @param payload 
- */
+
+    client.data.lobby_id = newLobbyId;
+    client.join(newLobbyId);
+
+    this.server.to(newLobbyId).emit("lobby_changed", lobbies.get(newLobbyId));
+    this.server.to(newLobbyId).emit("log", `Игрок ${username} присоединился к группе.`)
+  }
+
+
+  /**
+   * Начинает поиск, создаёт объект в котором хранится как и в лобби список игроков и нижняя и верхняя граница поиска.
+   * Граница: самый большой рейтинг в группе +300 и самый маленьгий -300.
+   * Границы рейтинга расширяются каждые 10сек по +100 и -100 и во время расширения снова проверяются все игроки в поиске, для нахождения подходящего вод границы.
+   * Так же при подключении игрока в поиск проверяется, подходит ли он по рейтингу к уже существующим группам, ведущим поиск
+   * @param client игрок, нажавший кнопку поиска
+   * @param payload 
+   */
   @SubscribeMessage("start_ranked")
-  handleStartRankedSearch(client:Socket, payload: any) {
-
+  handleStartRankedSearch(client: Socket, payload: any) {
   }
 }

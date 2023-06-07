@@ -8,6 +8,7 @@ import PlayerResponse from './dto/player-response.dto';
 
 @Injectable()
 export class PlayerService {
+  //todo inject lobby gateway here
   constructor(private prisma: PrismaService) { }
 
   async findOne(playerWhereUniqueInput: Prisma.playerWhereUniqueInput,): Promise<PlayerResponse | null> {
@@ -26,40 +27,14 @@ export class PlayerService {
     });
   }
 
+  async updatePlayerUsername(request:any) {
+    return this.prisma.player.update({where:{id:request.user.sub}, data:{username: request.body.username}}); 
+  }
+
   async findFullPlayer(playerWhereUniqueInput: Prisma.playerWhereUniqueInput,): Promise<player | null> {
     return this.prisma.player.findUnique({ where: playerWhereUniqueInput });
   }
 
-
-  async addPlayerToFriends(req: any) {
-    return this.prisma.friend_relation.create({ data: { friend_one: req.user.sub, friend_two: req.body.id } });
-  }
-
-  async acceptFriendRequest(req: any) {
-    return this.prisma.friend_relation.update({
-      where: {
-        friend_one_friend_two: {
-          friend_one: req.user.sub, friend_two: req.body.id
-        }
-      },
-      data: {
-        is_accepted: true,
-      }
-    });
-  }
-
-  async deleteFriendOrRequest(req: any) {
-    return this.prisma.friend_relation.deleteMany({
-      where: {
-        OR: [
-          { AND: [{ friend_one: req.user.sub }, { friend_two: req.body.id }] },
-          { AND: [{ friend_one: req.body.id }, { friend_two: req.user.sub }] },
-        ],
-      }
-    });
-  }
-
-  //
   async findFriendsOfPlayer(playerId: number): Promise<any> {
     return this.prisma.player.findUnique({
       where: {
@@ -90,5 +65,8 @@ export class PlayerService {
       }
     });
   }
+
+  //
+  
 
 }

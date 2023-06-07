@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import AppGateway from './app/app.gateway';
 import { AuthModule } from './auth/auth.module';
 import { PlayerModule } from './player/player.module';
 import { PlayerService } from './player/player.service';
 import { PrismaService } from './prisma/prisma.service';
+import { GameGateway } from './game/game.gateway';
+import LobbyGateway from './lobby/lobby.gateway';
+import { LobbyService } from './lobby/lobby.service';
+import { FriendModule } from './friend/friend.module';
+import { FriendService } from './friend/friend.service';
+import { LobbyModule } from './lobby/lobby.module';
+
 
 @Module({
   imports: [
@@ -13,8 +19,9 @@ import { PrismaService } from './prisma/prisma.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    FriendModule,
+    LobbyModule,
   ],
-  controllers: [],
-  providers: [PrismaService, PlayerService, AppGateway],
+  providers: [PrismaService, PlayerService, FriendService, GameGateway],
 })
 export class AppModule {}
