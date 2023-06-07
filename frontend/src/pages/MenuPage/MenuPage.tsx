@@ -8,10 +8,14 @@ import AuthPage from "./AuthPage/AuthPage";
 import MainPage from "./MainPage";
 import { websocketState } from "../../state/websocketState";
 import { io } from "socket.io-client";
+import { socketErrorState } from "../../state/socketErrorState";
+import Party from "./Party";
+import PlayerPage from "./PlayerPage";
 
 function MenuPage() {
     const [open, setOpen] = React.useState(false)
     const currentPlayer = useRecoilValue(currentPlayerState);
+    const socketEror = useRecoilValue(socketErrorState);
 
 
     function openSideover(event: React.MouseEvent<HTMLInputElement, MouseEvent>) {
@@ -25,10 +29,16 @@ function MenuPage() {
         await AuthService.logout();
     }
 
-    
+
 
     return (
         <div className='h-screen flex flex-col'>
+            {
+                !!currentPlayer && socketEror ?
+                    <div className="text-neutral-100 bg-red-800">Подключение к сети typetizione</div>
+                    :
+                    null
+            }
             <nav className="flex  flex-row h-14 gap-x-40 bg-neutral-700">
                 <div className="flex align-middle items-center">
                     {
@@ -54,22 +64,8 @@ function MenuPage() {
                 </div>
             </nav>
 
-            <div className="absolute bottom-3 left-3 flex flex-row gap-x-2 ">
-                <div className="h-[60px] w-[60px] bg-red-600">
-
-                </div>
-                <div className="h-[60px] w-[60px] bg-red-100">
-
-                </div>
-                <div className="h-[60px] w-[60px] bg-red-100">
-
-                </div>
-                <div className="h-[60px] w-[60px] bg-red-100">
-
-                </div>
-                <div className="h-[60px] w-[60px] bg-red-100">
-
-                </div>
+            <div className="absolute bottom-3 left-3  ">
+                <Party />
             </div>
 
             <input type="button"
@@ -82,6 +78,7 @@ function MenuPage() {
             <Routes>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/auth/*" element={<AuthPage />} />
+                <Route path="/player/:id" element={<PlayerPage/>}/>
             </Routes>
 
         </div>

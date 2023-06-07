@@ -4,17 +4,16 @@ import $api from "../http";
 import Player from "../model/player";
 import AuthResponse from "../model/response/AuthResponse";
 import { currentPlayerState, getPlayerFromToken } from "../state/currentPlayerState";
+import SocketService from "./socketService";
 
 
 export default class AuthService {
     static async login(username: string, password: string): Promise<AxiosResponse<AuthResponse>> {
         let response = await $api.post<AuthResponse>("/auth/login", { username, password });
-        console.log("1");
         localStorage.setItem("refresh_token", response.data.refresh_token);
-        console.log("2");
         localStorage.setItem("access_token", response.data.access_token);
-        console.log("3");
         setRecoil(currentPlayerState, getPlayerFromToken());
+        SocketService.connect();
         return response;
     }
 
@@ -23,6 +22,7 @@ export default class AuthService {
         localStorage.setItem("refresh_token", response.data.refresh_token);
         localStorage.setItem("access_token", response.data.access_token);
         setRecoil(currentPlayerState, getPlayerFromToken());
+        SocketService.connect();
         return response;
     }
 
@@ -30,6 +30,7 @@ export default class AuthService {
         setRecoil(currentPlayerState, null);
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("access_token");
+        SocketService.disconnect();
         return await $api.post("/auth/logout", {}, { headers: { Authorization: `Bearer ${localStorage.getItem("refresh_token")}` } });
     }
 
@@ -42,6 +43,7 @@ export default class AuthService {
             return true;
         } catch {
             setRecoil(currentPlayerState, null);
+            SocketService.disconnect();
             return false;
         }
 

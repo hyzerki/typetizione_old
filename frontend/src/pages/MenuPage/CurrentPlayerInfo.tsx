@@ -12,7 +12,7 @@ function CurrentPlayerInfo() {
         return (
             <React.Fragment>
                 <Link to={"/player/" + currentPlayerData?.id}>
-                    <div className=" mb-2 text-3xl">{currentPlayerData?.username}</div>
+                    <div className=" mb-2 font-semibold text-4xl">{currentPlayerData?.username}</div>
                 </Link>
                 <div className="mb-2 text-3xl">{currentPlayerData?.rating}</div>
             </React.Fragment>

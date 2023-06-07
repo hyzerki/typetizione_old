@@ -1,17 +1,18 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { Link, Route, Router, Routes } from 'react-router-dom'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { io } from 'socket.io-client'
 import './App.css'
 import reactLogo from './assets/react.svg'
 import LoginPage from './pages/MenuPage/AuthPage/AuthPage'
 import MenuPage from './pages/MenuPage/MenuPage'
 import NotFoundPage from './pages/NotFoundPage'
-import { currentPlayerState } from './state/currentPlayerState'
-import { useRecoilValue, useRecoilState } from 'recoil'
-import { io } from 'socket.io-client'
-import { websocketState } from './state/websocketState'
 import AuthService from './service/authService'
+import SocketService from './service/socketService'
+import { currentPlayerState } from './state/currentPlayerState'
 import { socketErrorState } from './state/socketErrorState'
 import { socketReadyState } from './state/socketReadyState'
+import { websocketState } from './state/websocketState'
 
 function App() {
     const currentPlayer = useRecoilValue(currentPlayerState);
@@ -22,6 +23,8 @@ function App() {
     useLayoutEffect(() => {
         AuthService.checkAuth().then(isAuth => {
             if (isAuth) {
+                SocketService.connect();
+                /*
                 let sock = io(`${import.meta.env.VITE_API_BASE_URL}/lobby`,
                     {
                         query: {
@@ -31,12 +34,13 @@ function App() {
                         transports: ["websocket"]
                     }
                 );
-                setSocket(sock);
+                setSocket(sock);*/
             }
         });
     }, []);
 
     useEffect(() => {
+        //todo перенести это говно в SocketService или оставить как есть и не ломать
         socket.on('disconnect', () => {
             if (socket.disconnected && !!currentPlayer) {
                 setSocketError(true);

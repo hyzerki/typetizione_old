@@ -12,8 +12,8 @@ const websocketState = atom<Socket>({
 
 function getDataFromCurrentPlayer() {
     let currentPlayer = getRecoil(currentPlayerState);
-    let { player_id, username } = currentPlayer;
-    return { player_id, username };
+    let { id, username } = currentPlayer;
+    return { id, username };
 }
 
 function isAuth() {

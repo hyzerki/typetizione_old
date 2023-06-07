@@ -6,10 +6,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const $api = axios.create({ baseURL: API_BASE_URL });
 
-let refreshRequest: any = null;
 
 $api.interceptors.request.use(
   config => {
+    console.log("rR", config);
     if (!localStorage.getItem("access_token")) {
       return config;
     }
@@ -34,23 +34,23 @@ $api.interceptors.request.use(
 $api.interceptors.response.use(
   r => r,
   async error => {
-    if (error.response?.status !== axios.HttpStatusCode.Unauthorized) {
+    if (error.response.status !== axios.HttpStatusCode.Unauthorized) {
       throw error;
     }
     if (!localStorage.getItem("refresh_token") || error.config.retry) {
       setRecoil(currentPlayerState, null);
       throw error;
     }
-
-    if (!refreshRequest) {
-
-      refreshRequest = await $api.post("/auth/refresh", {}, { headers: { Authorization: `Bearer ${localStorage.getItem("refresh_token")}` } });
-    }
-    const { data } = await refreshRequest;
+    
+      // console.log("pre")
+      
+      // console.log("post", refreshRequest);
+    
+    const { data } = await await axios.post("/auth/refresh", {}, { baseURL: API_BASE_URL, headers: { Authorization: `Bearer ${localStorage.getItem("refresh_token")}` } });;
     localStorage.setItem("access_token", data.access_token);
-    localStorage.setItem("refresh_token", data.access_token);
+    localStorage.setItem("refresh_token", data.refresh_token);
     setRecoil(currentPlayerState, getPlayerFromToken());
-    const newRequest = {
+    const newRequest = {  
       ...error.config,
       retry: true,
     };
