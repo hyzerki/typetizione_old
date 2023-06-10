@@ -1,7 +1,9 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from "Socket.IO";
-import uuid from "uuid";
 import { LobbyService } from './lobby.service';
+import { PlayerService } from 'src/player/player.service';
+
+const GAME_MAX_PLAYERS = 5;
 
 interface Player {
   player_id: string;
@@ -13,13 +15,28 @@ interface Lobby {
   players: Array<Player>;
 }
 
+class Seeker implements Lobby {
+  id: string;
+  players: Player[];
+  gameType: string[];
+  upperBound: number;
+  lowerBound: number;
+  boundUpdateInterval?: NodeJS.Timer = setInterval(() => {
+    this.lowerBound -= 100;
+    this.upperBound += 100;
+    //todo зачекать остальные лобби вдруг уже совпадает
+  });
 
+}
 
+function countPlayers(arr: Seeker[]) {
+  return arr.map(element => element.players.length).reduce((a, b) => a + b);
+}
 
 //Хранит список лобби
 //todo перенести хранение лобби в redis
 const lobbies: Map<string, Lobby> = new Map();
-
+const searchQueue: Seeker[] = new Array<Seeker>();
 @WebSocketGateway({
   cors: { origin: "*" },
   serveClient: false,
@@ -27,7 +44,7 @@ const lobbies: Map<string, Lobby> = new Map();
 })
 export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
-  constructor(private lobbyService: LobbyService) { }
+  constructor(private lobbyService: LobbyService, private playerService: PlayerService) { }
 
   @WebSocketServer()
   server: Server;
@@ -67,11 +84,10 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
 
     console.log("currentLobby ", currentLobby);
     console.log("newLobby", newLobby);
-    //fix возможность присоединиться в текущее лобби
     if (currentLobby.id === newLobby.id) {
       return;
     }
-    
+
     if (currentLobby.players.length <= 1) {
       lobbies.delete(currentLobbyId);
     } else {
@@ -144,7 +160,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
 
   @SubscribeMessage("leave_lobby")
   handleLeaveLobby(client: Socket, payload: any) {
-    //todo способ покинуть лобби: выйти из старого, сгенерить uuid нового лобби и войти в него)
 
     // uuid.v4();
     const player_id = client.data.player_id as string;
@@ -162,7 +177,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       this.server.to(currentLobby.id).emit("log", `Игрок ${username} покинул группу.`)
     }
     client.leave(currentLobbyId);
-    //fix хуйня здесь: массив плеерс пустой
     lobbies.set(newLobbyId, { id: newLobbyId, players: [{ player_id, username }] });
     console.log("Новое лобби: ", lobbies.get(newLobbyId));
 
@@ -175,15 +189,142 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
   }
 
 
+  //<==================================================================================================================>
+
   /**
    * Начинает поиск, создаёт объект в котором хранится как и в лобби список игроков и нижняя и верхняя граница поиска.
-   * Граница: самый большой рейтинг в группе +300 и самый маленьгий -300.
+   * Граница: самый большой рейтинг в группе +150 и самый маленьгий -150.
    * Границы рейтинга расширяются каждые 10сек по +100 и -100 и во время расширения снова проверяются все игроки в поиске, для нахождения подходящего вод границы.
    * Так же при подключении игрока в поиск проверяется, подходит ли он по рейтингу к уже существующим группам, ведущим поиск
    * @param client игрок, нажавший кнопку поиска
-   * @param payload 
+   * @param payload передаются параметры поиска {type: [ranked, casual], }
    */
-  @SubscribeMessage("start_ranked")
-  handleStartRankedSearch(client: Socket, payload: any) {
+  @SubscribeMessage("start_queue")
+  async handleStartRankedSearch(client: Socket, payload: any) {
+    const gameType = payload.gameType;
+    const lobby = lobbies.get(client.data.lobby_id);
+    const players = await this.playerService.findMany(lobby.players.map(p => { id: p.player_id }));
+    const lowerBound = Math.min.apply(Math, players.map(p => p.rating)) - 150;
+    const upperBound = Math.max.apply(Math, players.map(p => p.rating)) + 150;
+    searchQueue.push({ ...lobby, lowerBound, upperBound, gameType })
+    this.server.to(lobby.id).emit("start_queue");
+
+    //todo если игроков в группе такое колличество или больше того, что требуется для начала игры - сразу создавать им игру без помещения в очередь
+    if (lobby.players.length >= GAME_MAX_PLAYERS) {
+
+    }
+
+
+    //Логика подбора игроков 
+    //todo: вынести в отдельную функцию
+    searchQueue.forEach((seeker1: Seeker) => {
+      let suitableSeekers = searchQueue.filter(seeker2 =>
+        seeker1.id !== seeker2.id
+        &&
+        seeker1.players.length + seeker2.players.length <= GAME_MAX_PLAYERS
+        &&
+        seeker1.lowerBound <= seeker2.lowerBound
+        &&
+        seeker1.upperBound >= seeker2.upperBound
+        &&
+        //смотрим совпадает ли хотябы один режим игры
+        seeker1.gameType.some(t1 => seeker2.gameType.includes(t1))
+      );
+
+      //теперь надо из того, что нашло собрать нам фул игру
+      /*
+        два цикла i и j для каждого iтого ищем несколько jтых чтобы 
+
+      */
+
+      let readyCombinations: Seeker[] = [];
+
+      for (let i = 0; i < suitableSeekers.length; i++) {
+        let comb: Seeker[] = [];
+        //todo возможно это лишнее
+        comb.push(seeker1, suitableSeekers[i]);
+        if (countPlayers(comb) === GAME_MAX_PLAYERS) {
+          readyCombinations = comb;
+          break; //fix или break
+        }
+
+        //comb.map(element => element.players.length).reduce((a, b) => a+b)
+        //далее надо проверить может ли ещё 
+        //как я заебался..
+        let potentialComb = [...comb];
+        for (let j = i + 1; j < suitableSeekers.length; j++) {
+          if (countPlayers(potentialComb) + suitableSeekers[j].players.length > GAME_MAX_PLAYERS) {
+            continue;
+          }
+          //добавляем в массив для последующих итераций
+          potentialComb.push(suitableSeekers[j]);
+          //если игра укомплектована
+          if (countPlayers(potentialComb) === GAME_MAX_PLAYERS) {
+            readyCombinations = potentialComb;
+            break;
+          }
+        }
+        if (readyCombinations.length !== 0) {
+          break;
+        }
+      }
+    })
   }
+
+  findMatch(seeker: Seeker) {
+    let suitableSeekers = searchQueue.filter(seeker2 =>
+      seeker.id !== seeker2.id
+      &&
+      seeker.players.length + seeker2.players.length <= GAME_MAX_PLAYERS
+      &&
+      seeker.lowerBound <= seeker2.lowerBound
+      &&
+      seeker.upperBound >= seeker2.upperBound
+      &&
+      //смотрим совпадает ли хотябы один режим игры
+      seeker.gameType.some(t1 => seeker2.gameType.includes(t1))
+    );
+
+    //теперь надо из того, что нашло собрать нам фул игру
+    /*
+      два цикла i и j для каждого iтого ищем несколько jтых чтобы 
+
+    */
+
+    let readyCombinations: Seeker[] = [];
+
+    for (let i = 0; i < suitableSeekers.length; i++) {
+      let comb: Seeker[] = [];
+      //todo возможно это лишнее
+      comb.push(seeker, suitableSeekers[i]);
+      if (countPlayers(comb) === GAME_MAX_PLAYERS) {
+        readyCombinations = comb;
+        break; //fix или break
+      }
+
+      //comb.map(element => element.players.length).reduce((a, b) => a+b)
+      //далее надо проверить может ли ещё 
+      //как я заебался..
+      let potentialComb = [...comb];
+      for (let j = i + 1; j < suitableSeekers.length; j++) {
+        if (countPlayers(potentialComb) + suitableSeekers[j].players.length > GAME_MAX_PLAYERS) {
+          continue;
+        }
+        //добавляем в массив для последующих итераций
+        potentialComb.push(suitableSeekers[j]);
+        //если игра укомплектована
+        if (countPlayers(potentialComb) === GAME_MAX_PLAYERS) {
+          readyCombinations = potentialComb;
+          break;
+        }
+      }
+      if (readyCombinations.length !== 0) {
+        break;
+      }
+    }
+  }
+
+
 }
+
+

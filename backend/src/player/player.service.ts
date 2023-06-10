@@ -27,6 +27,10 @@ export class PlayerService {
     });
   }
 
+  async findMany(params:any[]){
+    return this.prisma.player.findMany({where: {OR:params}});
+  }
+
   async updatePlayerUsername(request:any) {
     return this.prisma.player.update({where:{id:request.user.sub}, data:{username: request.body.username}}); 
   }

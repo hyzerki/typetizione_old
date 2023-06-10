@@ -1,26 +1,31 @@
-import React from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import "./TypeForm.css";
 import "../../assets/fonts/UbuntuMono-R.ttf";
+import useInterval from "../../hooks/useInterval";
 
-function TypeForm(props:any) {
+function TypeForm(props: any) {
     //Constants 
     const textToType: string = props.textToType;
     const textParts: Array<string> = textToType.split(" ");
-    
+
     //Text states 
-    const [textLeftToType, setTextLeftToType] = React.useState(textToType);
-    const [currentPart, setCurrentPart] = React.useState(0);
-    const [userInputText, setUserInputText] = React.useState("");
-    const [isUserInputFocused, setIsUserInputFocused] = React.useState(false);
-    const [commitedText, setCommitedText] = React.useState("");
+    const [textLeftToType, setTextLeftToType] = useState(textToType);
+    const [currentPart, setCurrentPart] = useState(0);
+    const [userInputText, setUserInputText] = useState("");
+    const [isUserInputFocused, setIsUserInputFocused] = useState(false);
+    const [commitedText, setCommitedText] = useState("");
     //Stats states
-    const [startTime, setStartTime] = React.useState(Date.now());
-    const [resultTime, setResultTime] = React.useState(0);
-    const [errorsAmount, setErrorsAmount] = React.useState(0);
-    const [errorsMadePreviously, setErrorsMadePreviously] = React.useState(false);
+    const [startTime, setStartTime] = useState(()=>Date.now());
+    const [currentTime, setCurrentTime] = useState(0);
+    const [resultTime, setResultTime] = useState(0);
+    const [errorsAmount, setErrorsAmount] = useState(0);
+    const [errorsMadePreviously, setErrorsMadePreviously] = useState(false);
 
     //Refs
-    const userInputRef: React.LegacyRef<HTMLInputElement> = React.useRef(null);
+    const userInputRef: React.LegacyRef<HTMLInputElement> = useRef(null);
+
+    useInterval(timeRefreshTick, 100);
+
 
     const createErrorMask = (input: string, word: string) => {
         let isCaretPlaced: boolean = false;
@@ -66,6 +71,11 @@ function TypeForm(props:any) {
             props.onChange();
     };
 
+    function timeRefreshTick() {
+        console.log(startTime);
+        setCurrentTime(Date.now()-startTime);
+    }
+
     const onUserInputKeyPress = (
         event: React.KeyboardEvent<HTMLInputElement>
     ) => {
@@ -100,9 +110,10 @@ function TypeForm(props:any) {
         if (typeof props.onClick === 'function') {
             props.onClick();
         }
-        setStartTime(Date.now());
+        setStartTime(()=>Date.now());
+        console.log(startTime);
     };
-
+    
     const onUserInputFocus = () => {
         setIsUserInputFocused(true);
         if (typeof props.onFocus === 'function') {
@@ -119,42 +130,42 @@ function TypeForm(props:any) {
 
     return (
         <React.Fragment>
-            <div style={{fontSize:props.fontSize, color: "#888888"}} className={`flex place-items-center justify-center h-full typeForm ${isUserInputFocused? "": "blur"} leading-none`} onClick={onClick}>
-                {
-                    resultTime ?
-                        <div className="resultWrapper">
-                            <div className="resultElement">{resultTime}s.</div>
-                            <div className="resultElement">acc. {(100 - (100 / (textToType.length / errorsAmount))).toFixed(2)}%</div>
-                        </div>
-                        :
-                        <div className="overflow-hidden">
-                            <div>
-                                <input
-                                    type="text"
-                                    autoCapitalize="none"
-                                    autoCorrect="off"
-                                    spellCheck="false"
-                                    className="typeFormHiddenInput"
-                                    value={userInputText}
-                                    onChange={onUserInputChange}
-                                    onKeyPress={onUserInputKeyPress}
-                                    onFocus={onUserInputFocus}
-                                    onBlur={onUserInputBlur}
-                                    ref={userInputRef}
-                                />
-                            </div>
-                            <div className="break-words">
-                                <span style={{ color: "#ffffff" }}>{commitedText}</span>
-                                {createErrorMask(userInputText, textParts[currentPart])}
-                                {textLeftToType.replace(textParts[currentPart], "")}
-                            </div>
-                        </div>
-                }
-            </div> 
+            <div style={{ fontSize: props.fontSize, color: "#888888" }} className={`flex flex-col  place-items-center justify-center h-full typeForm ${isUserInputFocused ? "" : "blur"} leading-none`} onClick={onClick}>
+
+
+                <div className="resultWrapper">
+                    <div className="resultElement">{(currentTime/1000).toFixed(1)}s.</div>
+                    <div className="resultElement">acc. {(100 - (100 / (textToType.length / errorsAmount))).toFixed(2)}%</div>
+                </div>
+
+                <div className="overflow-hidden">
+                    <div>
+                        <input
+                            type="text"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck="false"
+                            className="typeFormHiddenInput"
+                            value={userInputText}
+                            onChange={onUserInputChange}
+                            onKeyPress={onUserInputKeyPress}
+                            onFocus={onUserInputFocus}
+                            onBlur={onUserInputBlur}
+                            ref={userInputRef}
+                        />
+                    </div>
+                    <div className="break-words">
+                        <span style={{ color: "#ffffff" }}>{commitedText}</span>
+                        {createErrorMask(userInputText, textParts[currentPart])}
+                        {textLeftToType.replace(textParts[currentPart], "")}
+                    </div>
+                </div>
+
+            </div>
         </React.Fragment>
     );
 }
 
-TypeForm.defaultProps = {textToType:"The quick brown fox jumps over the lazy dog", textHeight:"30px"}
+TypeForm.defaultProps = { textToType: "The quick brown fox jumps over the lazy dog", textHeight: "30px" }
 
 export default TypeForm;
