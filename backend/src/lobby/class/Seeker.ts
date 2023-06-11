@@ -9,19 +9,21 @@ export default class Seeker implements Lobby {
     languages: string[];
     upperBound: number;
     lowerBound: number;
-    boundUpdateInterval?: NodeJS.Timer = setInterval(() => {
-        console.log(`New Bounds: ${this.upperBound}->${this.upperBound + 100}`);
-        this.lowerBound -= 100;
-        this.upperBound += 100;
-        LobbyGateway.findMatch(this);
-    }, 10000);
+    boundUpdateInterval?: NodeJS.Timer;
 
-    constructor(id, players, gameType, languages, lowerBound, upperBound) {
+    constructor(id, players, gameType, languages, lowerBound, upperBound, lobbyGateway: LobbyGateway) {
         this.id = id;
         this.players = players;
         this.gameType = gameType;
         this.languages = languages;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+
+        this.boundUpdateInterval = setInterval(() => {
+            console.log(`New Bounds: ${this.upperBound}->${this.upperBound + 100}`);
+            this.lowerBound -= 100;
+            this.upperBound += 100;
+            lobbyGateway.findMatch(this);
+        }, 10000);
     }
 }

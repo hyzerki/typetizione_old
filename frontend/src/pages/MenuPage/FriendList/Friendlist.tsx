@@ -96,7 +96,6 @@ function Friendlist() {
     }
 
     function Friend(props: any) {
-        //todo удаление из друзей
         async function deleteFriend() {
             await FriendsService.deleteFriendOrRequest(parseInt(props.player.id));
             friendListRefresh();
@@ -120,8 +119,7 @@ function Friendlist() {
     }
 
     function IncomingRequest(props: any) {
-        //todo отклонение запроса
-        //todo принятие запроса
+
         async function declineRequest() {
             await FriendsService.deleteFriendOrRequest(parseInt(props.player.id));
             friendListRefresh();
@@ -149,7 +147,6 @@ function Friendlist() {
 
 
     function OutgoingRequest(props: any) {
-        //todo отмена исходящего запроса
         async function cancellRequest() {
             await FriendsService.deleteFriendOrRequest(parseInt(props.player.id));
             friendListRefresh();

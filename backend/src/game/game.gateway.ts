@@ -18,7 +18,11 @@ interface Game {
 }
 
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: { origin: "*" },
+  serveClient: false,
+  namespace: "playgame",
+})
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private authService: AuthService, private playerService: PlayerService, private gameService: GameService) { }
@@ -35,6 +39,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.disconnect(true);
       return;
     }
+    
     const [type, token] = client.handshake.headers.authorization.split(' ') ?? [];
     const payload = await this.authService.verifyToken(token);
     //зачекать есть ли такой игрок в pgs
@@ -48,10 +53,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           player_id: +payload.sub
         }
       });
-    }
+    } 
     catch {
       client.disconnect();
+      return;
     }
+    console.log("GAME: 1");
     //todo доделывать дальше логику
   }
 

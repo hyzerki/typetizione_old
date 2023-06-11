@@ -1,5 +1,5 @@
-import React, { useLayoutEffect } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import React, { useLayoutEffect, useState } from "react";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import SideOver from "../../components/SideOver";
 import AuthService from "../../service/authService";
@@ -16,7 +16,9 @@ function MenuPage() {
     const [open, setOpen] = React.useState(false)
     const currentPlayer = useRecoilValue(currentPlayerState);
     const socketEror = useRecoilValue(socketErrorState);
-
+    const socket = useRecoilValue(websocketState);
+    const [isSearching, setIsSearching] = useState(false);
+    const navigate = useNavigate();
 
     function openSideover(event: React.MouseEvent<HTMLInputElement, MouseEvent>) {
         setOpen(true);
@@ -29,7 +31,32 @@ function MenuPage() {
         await AuthService.logout();
     }
 
+    function handleStartQueue() {
+        setIsSearching(true);
+    }
 
+    function handleCancelQueue() {
+        setIsSearching(false);
+    }
+
+    function handleGameFound(payload:any){
+        navigate("/play/"+payload.id);
+    }
+
+    function cancelQueue(){
+        socket.emit("cancel_queue");
+    }
+
+    useLayoutEffect(() => {
+        socket.on("start_queue", handleStartQueue);
+        socket.on("cancel_queue", handleCancelQueue);
+        socket.on("game_found", handleGameFound);
+        return () => {
+            socket.removeListener("start_queue", handleStartQueue);
+            socket.removeListener("cancel_queue", handleCancelQueue);
+            socket.removeListener("game_found", handleGameFound);
+        }
+    }, [socket])
 
     return (
         <div className='h-screen flex flex-col'>
@@ -68,17 +95,30 @@ function MenuPage() {
                 <Party />
             </div>
 
-            <input type="button"
-                onClick={openSideover}
-                value="Начать игру"
-                className="absolute bottom-3 right-3 w-[360px] h-[60px] inline-flex justify-center rounded-md bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500" />
+
+            <div className="absolute bottom-3 right-3 ">
+                {
+                    isSearching ?
+                        <div>
+                            <input type="button"
+                                onClick={cancelQueue}
+                                value="Прекратить поиск"
+                                className=" w-[360px] h-[60px] inline-flex justify-center rounded-md bg-red-600 text-sm font-semibold text-white shadow-sm hover:bg-red-500" />
+                        </div>
+                        :
+                        <input type="button"
+                            onClick={openSideover}
+                            value="Начать игру"
+                            className=" w-[360px] h-[60px] inline-flex justify-center rounded-md bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500" />
+                }
+            </div>
             <SideOver isOpen={open} setOpen={openSideover} setClose={closeSideover} />
 
 
             <Routes>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/auth/*" element={<AuthPage />} />
-                <Route path="/player/:id" element={<PlayerPage/>}/>
+                <Route path="/player/:id" element={<PlayerPage />} />
             </Routes>
 
         </div>

@@ -1,7 +1,19 @@
 import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
+import { useRecoilValue } from 'recoil'
+import { websocketState } from '../state/websocketState'
 
 export default function Example(props: any) {
+
+    const socket = useRecoilValue(websocketState);
+
+    function handleQueueStart(){
+        props.setClose();
+        socket.emit("start_queue", {
+            gameType:"ranked",
+            languages:["russian","english"]
+        })
+    }
 
     return (
         <Transition.Root show={props.isOpen} as={Fragment}>
@@ -46,9 +58,10 @@ export default function Example(props: any) {
                                             </div>
                                             <div>
                                                 <input type="button"
+                                                    onClick={handleQueueStart}
                                                     value="Начать поиск"
                                                     className="absolute bottom-3 right-3 w-[360px] h-[60px] inline-flex justify-center rounded-md bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500"
-                                                    />
+                                                />
                                             </div>
                                         </div>
                                     </div>

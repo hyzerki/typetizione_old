@@ -43,10 +43,6 @@ export class GameService {
         // let players = seekers.map((seeker: Seeker) => { return seeker.players }).flat(3).map((player) => { return { player_id: +player.player_id } });
         let players = seekers.flatMap(s => s.players).map(p => { return { player_id: +p.player_id }});
 
-        console.log("🚀 ~ file: game.service.ts:42 ~ GameService ~ createGame ~ players:", players)
-
-        console.log("🚀 ~ file: game.service.ts:17 ~ GameService ~ createGame ~ seekers:", seekers)
-
         //todo добавить вместе с игрой ещё и игроков(pgs) https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#create-a-single-record-and-multiple-related-records
         //создать игру и добавить туда pgs
 
@@ -61,7 +57,6 @@ export class GameService {
                 }
             }
         });
-        console.log("🚀 ~ file: game.service.ts:57 ~ GameService ~ createGame ~ game:", game)
 
         // раскидать всем инвайты в созданную игру
         seekers.forEach((seeker: Seeker) => {

@@ -5,8 +5,9 @@ import { PlayerService } from 'src/player/player.service';
 import { GameService } from 'src/game/game.service';
 import Seeker from './class/Seeker';
 import Lobby from './interface/Lobby';
+import { Inject } from '@nestjs/common';
 
-const GAME_MAX_PLAYERS = 1;
+const GAME_MAX_PLAYERS = 2;
 
 
 
@@ -27,6 +28,10 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
   //todo перенести хранение лобби в redis
   static lobbies: Map<string, Lobby> = new Map();
   static searchQueue: Seeker[] = new Array<Seeker>();
+
+  @Inject()
+  static gameService;
+
   @WebSocketServer()
   server: Server;
 
@@ -117,6 +122,7 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
     const username = client.data.username as string;
     const lobby_id = client.data.lobby_id as string;
     const lobby = LobbyGateway.lobbies.get(lobby_id);
+    this.handleCancelQueue(client);
     if (lobby.players.length <= 1) {
       LobbyGateway.lobbies.delete(lobby_id);
       return;
@@ -148,7 +154,7 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
     const currentLobbyId = client.data.lobby_id as string;
     const newLobbyId = this.lobbyService.generateNewLobbyUUID();
     const currentLobby = LobbyGateway.lobbies.get(currentLobbyId);
-
+    this.handleCancelQueue(client)
 
     if (currentLobby.players.length <= 1) {
       LobbyGateway.lobbies.delete(currentLobbyId);
@@ -182,15 +188,15 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
    */
   @SubscribeMessage("start_queue")
   async handleStartRankedSearch(client: Socket, payload: any) {
-    
+
     const gameType = payload.gameType;
     const languages = payload.languages;
     const lobby = LobbyGateway.lobbies.get(client.data.lobby_id);
-    const players = await this.playerService.findMany(lobby.players.map(p => { return {id: +p.player_id }}));
-    
+    const players = await this.playerService.findMany(lobby.players.map(p => { return { id: +p.player_id } }));
+
     const lowerBound = Math.min.apply(Math, players.map(p => p.rating)) - 150;
     const upperBound = Math.max.apply(Math, players.map(p => p.rating)) + 150;
-    const newSeeker:Seeker = new Seeker(lobby.id, lobby.players, gameType,languages,lowerBound,upperBound);
+    const newSeeker: Seeker = new Seeker(lobby.id, lobby.players, gameType, languages, lowerBound, upperBound, this);
     console.log("🚀 ~ file: lobby.gateway.ts:195 ~ LobbyGateway ~ handleStartRankedSearch ~ newSeeker:", newSeeker)
     LobbyGateway.searchQueue.push(newSeeker)
     this.server.to(lobby.id).emit("start_queue");
@@ -198,26 +204,30 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
     if (lobby.players.length >= GAME_MAX_PLAYERS) {
       console.log("СРАЗУ СТАРТУЕМ!");
       clearInterval(newSeeker.boundUpdateInterval);
+      this.server.to(lobby.id).emit("cancel_queue");
       this.gameService.createGame([newSeeker]);
+      return;
     }
 
 
-    LobbyGateway.findMatch(newSeeker);
+    this.findMatch(newSeeker);
   }
 
   @SubscribeMessage("cancel_queue")
-  async handleCancelQueue(client: Socket, payload: any) {
+  async handleCancelQueue(client: Socket) {
     const lobbyId = client.data.lobby_id;
     let seeker = LobbyGateway.searchQueue.find(s => s.id === lobbyId);
     if (!seeker) {
       return;
     }
     clearInterval(seeker.boundUpdateInterval);
-    LobbyGateway.searchQueue = LobbyGateway.searchQueue.filter(s=>s!==seeker);
+    LobbyGateway.searchQueue = LobbyGateway.searchQueue.filter(s => s !== seeker);
+    this.server.to(lobbyId).emit("cancel_queue");
+
   }
 
 
-  static findMatch(seeker: Seeker) {
+  findMatch(seeker: Seeker) {
     let suitableSeekers = LobbyGateway.searchQueue.filter(seeker2 =>
       seeker.id !== seeker2.id
       &&
@@ -243,16 +253,14 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
 
     for (let i = 0; i < suitableSeekers.length; i++) {
       let comb: Seeker[] = [];
-      //todo возможно это лишнее
       comb.push(seeker, suitableSeekers[i]);
       if (countPlayers(comb) === GAME_MAX_PLAYERS) {
         readyCombinations = comb;
-        break; //fix или break
+        break;
       }
 
       //comb.map(element => element.players.length).reduce((a, b) => a+b)
       //далее надо проверить может ли ещё 
-      //как я заебался..
       let potentialComb = [...comb];
       for (let j = i + 1; j < suitableSeekers.length; j++) {
         if (countPlayers(potentialComb) + suitableSeekers[j].players.length > GAME_MAX_PLAYERS) {
@@ -275,9 +283,15 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       return;
     }
 
-    readyCombinations.forEach(combi => clearInterval(combi.boundUpdateInterval));
+    readyCombinations.forEach(combi => {
+      clearInterval(combi.boundUpdateInterval);
+      this.server.to(combi.id).emit("cancel_queue");
+    });
+    console.log("🚀 ~ file: lobby.gateway.ts:285 ~ LobbyGateway ~ findMatch ~ readyCombinations:", readyCombinations)
 
 
+
+    this.gameService.createGame(readyCombinations);
   }
 }
 

@@ -13,6 +13,7 @@ import { currentPlayerState } from './state/currentPlayerState'
 import { socketErrorState } from './state/socketErrorState'
 import { socketReadyState } from './state/socketReadyState'
 import { websocketState } from './state/websocketState'
+import GamePage from './pages/MenuPage/GamePage'
 
 function App() {
     const currentPlayer = useRecoilValue(currentPlayerState);
@@ -56,6 +57,7 @@ function App() {
 
     return (
         <Routes>
+            <Route path='/play/:id' element={<GamePage/>}/>
             <Route path='/*' element={<MenuPage />} />
             {/* <Route path='*' element={<NotFoundPage />} /> */}
         </Routes>
