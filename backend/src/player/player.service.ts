@@ -27,7 +27,7 @@ export class PlayerService {
     });
   }
 
-  async findMany(params:any[]){
+  async findMany(params:Prisma.playerWhereInput[]){
     return this.prisma.player.findMany({where: {OR:params}});
   }
 

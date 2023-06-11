@@ -6,4 +6,5 @@ export class LobbyService {
     generateNewLobbyUUID(): string{
         return v4();
     }
+    
 }

@@ -75,6 +75,17 @@ export class AuthService {
     return await this.generateTokenPair(payload);
   }
 
+  async verifyToken(refreshToken: string): Promise<any> {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_SECRET_KEY,
+      });
+      return payload;
+    } catch {
+      return null
+    }
+  }
+
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

@@ -8,7 +8,7 @@ datasource db {
 }
 
 model game {
-  id                BigInt              @id @default(autoincrement())
+  id                Int                 @id @default(autoincrement())
   type              game_type
   date_time         DateTime            @default(now()) @db.Timestamp(6)
   text_id           Int
@@ -29,9 +29,9 @@ model player {
 }
 
 model friend_relation {
-  friend_one                                Int
-  friend_two                                Int
-  is_accepted                               Boolean @default(false)
+  friend_one         Int
+  friend_two         Int
+  is_accepted        Boolean @default(false)
   related_player_one player  @relation("friend_relation_friend_oneToplayer", fields: [friend_one], references: [id], onDelete: NoAction, onUpdate: NoAction)
   related_player_two player  @relation("friend_relation_friend_twoToplayer", fields: [friend_two], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -39,16 +39,17 @@ model friend_relation {
 }
 
 model player_game_stats {
-  game_id     BigInt
+  game_id     Int
   player_id   Int
-  rating      Int?     @db.SmallInt
-  rating_gain Int?     @db.SmallInt
-  wpm         Int?     @db.SmallInt
-  cpm         Int?     @db.SmallInt
-  accuracy    Decimal? @db.Decimal(5, 2)
+  rating      Int?         @db.SmallInt
+  rating_gain Int?         @db.SmallInt
+  wpm         Int?         @db.SmallInt
+  cpm         Int?         @db.SmallInt
+  accuracy    Decimal?     @db.Decimal(5, 2)
   typing_time Int?
-  game        game     @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player      player   @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  game_status game_status? @default(not_started)
+  game        game         @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player      player       @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([game_id, player_id])
 }
@@ -80,4 +81,11 @@ enum game_type {
 enum text_language {
   russian
   english
+}
+
+enum game_status {
+  not_started
+  left
+  afk
+  finished
 }

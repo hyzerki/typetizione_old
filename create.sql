@@ -37,26 +37,31 @@ create type game_type as enum('casual', 'ranked', 'training');
 
 create table game
 (
-	id bigserial primary key,
+	id serial primary key,
 	type game_type not null,
 	date_time timestamp default current_timestamp not null,
 	text_id int references text_to_type(id) not null
 );
 
+create type game_status as enum('not_started', 'left', 'afk', 'finished');
+
 create table player_game_stats
 (
-	game_id bigint references game(id),
+	game_id int references game(id),
 	player_id int references player(id),
 	rating smallint,
 	rating_gain smallint,
 	wpm smallint,
 	cpm smallint,
 	accuracy numeric(5,2),
+	game_status game_status default('not_started'),
 	typing_time int,
 	primary key(game_id, player_id)
 );
 
+
 drop table player_game_stats;
+drop type game_status;
 drop table game;
 drop type game_type;
 drop table text_to_type;

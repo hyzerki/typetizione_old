@@ -10,6 +10,7 @@ import { LobbyService } from './lobby/lobby.service';
 import { FriendModule } from './friend/friend.module';
 import { FriendService } from './friend/friend.service';
 import { LobbyModule } from './lobby/lobby.module';
+import { GameModule } from './game/game.module';
 
 
 @Module({
@@ -21,7 +22,8 @@ import { LobbyModule } from './lobby/lobby.module';
     }),
     FriendModule,
     LobbyModule,
+    GameModule,
   ],
-  providers: [PrismaService, PlayerService, FriendService, GameGateway],
+  providers: [PrismaService, PlayerService, FriendService],
 })
 export class AppModule {}
