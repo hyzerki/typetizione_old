@@ -15,7 +15,7 @@ function TypeForm(props: any) {
     const [isUserInputFocused, setIsUserInputFocused] = useState(false);
     const [commitedText, setCommitedText] = useState("");
     //Stats states
-    const [startTime, setStartTime] = useState(()=>Date.now());
+    const [startTime, setStartTime] = useState(() => Date.now());
     const [currentTime, setCurrentTime] = useState(0);
     const [resultTime, setResultTime] = useState(0);
     const [errorsAmount, setErrorsAmount] = useState(0);
@@ -73,7 +73,7 @@ function TypeForm(props: any) {
 
     function timeRefreshTick() {
         console.log(startTime);
-        setCurrentTime(Date.now()-startTime);
+        setCurrentTime(Date.now() - startTime);
     }
 
     const onUserInputKeyPress = (
@@ -100,7 +100,10 @@ function TypeForm(props: any) {
 
     const onTextComplete = () => {
         if (typeof props.onTextComplete === "function") {
-            props.onTextComplete();
+            props.onTextComplete({
+                accuracy: (100 - (100 / (textToType.length / errorsAmount))).toFixed(2),
+                time: (Date.now() - startTime) / 1000
+            });
         }
         setResultTime((Date.now() - startTime) / 1000);
     }
@@ -110,10 +113,10 @@ function TypeForm(props: any) {
         if (typeof props.onClick === 'function') {
             props.onClick();
         }
-        setStartTime(()=>Date.now());
+        setStartTime(() => Date.now());
         console.log(startTime);
     };
-    
+
     const onUserInputFocus = () => {
         setIsUserInputFocused(true);
         if (typeof props.onFocus === 'function') {
@@ -134,7 +137,7 @@ function TypeForm(props: any) {
 
 
                 <div className="resultWrapper">
-                    <div className="resultElement">{(currentTime/1000).toFixed(1)}s.</div>
+                    <div className="resultElement">{(currentTime / 1000).toFixed(1)}s.</div>
                     <div className="resultElement">acc. {(100 - (100 / (textToType.length / errorsAmount))).toFixed(2)}%</div>
                 </div>
 

@@ -4,13 +4,16 @@ import { get } from 'http';
 import Seeker from 'src/lobby/class/Seeker';
 import LobbyGateway from 'src/lobby/lobby.gateway';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { GameGateway } from './game.gateway';
 
 @Injectable()
 export class GameService {
     constructor(
         private prisma: PrismaService,
         @Inject(forwardRef(() => LobbyGateway))
-        private lobbyGateway: LobbyGateway
+        private lobbyGateway: LobbyGateway,
+        @Inject(forwardRef(()=>GameGateway))
+        private gameGateway: GameGateway
     ) { }
 
     async createGame(seekers: Seeker[]) {
@@ -57,6 +60,10 @@ export class GameService {
                 }
             }
         });
+
+        //todo создание игры 
+        // this.gameGateway.games.set()
+        this.gameGateway.addGame(game.id, textId.id, players);
 
         // раскидать всем инвайты в созданную игру
         seekers.forEach((seeker: Seeker) => {

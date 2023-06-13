@@ -7,7 +7,7 @@ import Seeker from './class/Seeker';
 import Lobby from './interface/Lobby';
 import { Inject } from '@nestjs/common';
 
-const GAME_MAX_PLAYERS = 2;
+const GAME_MAX_PLAYERS = 1;
 
 
 

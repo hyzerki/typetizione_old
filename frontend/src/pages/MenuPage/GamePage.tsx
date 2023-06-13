@@ -1,38 +1,68 @@
-import { useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import TypeForm from "../../components/TypeForm/TypeForm";
-import { io } from "socket.io-client";
-import { useEffect, useState } from "react";
+import { Socket, io } from "socket.io-client";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { currentPlayerState } from "../../state/currentPlayerState";
+import PlayerService from "../../service/playerService";
 
 export default function GamePage() {
-    const params = useParams();
+    const {id} = useParams();
+    console.log("id ", id);
     const currentPlayer = useRecoilValue(currentPlayerState);
-    const [socketError,setSocketError] = useState(false);
+    const [socketError, setSocketError] = useState(false);
+    const [isStarted, setIsStarted] = useState(false);
+    const [isFinished, setIsFinished] = useState(false);
+    const [isResult, setIsResult] = useState(false);
+    const [textToType, setTextToType] = useState("");
+    const [place, setPlace] = useState(-1);
+    const navigate = useNavigate();
+    const [gameSocket, setGameSocket] = useState<Socket>();
 
-    const [gameSocket, setGameSocket] = useState(
-        io(`${import.meta.env.VITE_API_BASE_URL}/playgame`,
-            {
-                transportOptions: {
-                    polling: {
-                        extraHeaders: {
-                            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-                        }
-                    }
-                }
-            })
-    );
+    function handleResult(res: any) {
+        // alert(res);
+        console.log(res);
+        setIsResult(true);
+        setPlace(res.place)
+    }
+
+    function handleStart(ttt: any) {
+        setTextToType(ttt.text);
+        setIsStarted(true);
+        console.log(ttt.text);
+    }
 
     useEffect(() => {
-        gameSocket.on('disconnect', () => {
-            if (gameSocket.disconnected && !!currentPlayer) {
-                setSocketError(true);
-                gameSocket.on('connect', () => {
-                    setSocketError(false);
-                })
-            }
+        //console.log("ccc", id);
+        // let gamId = +id;
+        let socket = io(`${import.meta.env.VITE_API_BASE_URL}/playgame`,
+            {
+                forceNew:true,
+                query: {
+                    game_id: id,
+                    player_id: currentPlayer.id,
+                },
+            })
+        socket.on('disconnect', () => {
+            //navigate("/");
+            alert("DS");
+            console.log("Disconnect");
         });
-    },[gameSocket])
+        socket.on("game_start", handleStart)
+        socket.on("result", handleResult);
+        console.log("Сокет изменился");
+        setGameSocket(socket)
+        return () => {
+            socket.removeListener("game_start", handleStart)
+            socket.removeListener("result", handleResult);
+            socket.close();
+        }
+    }, []);
+
+    function finish() {
+        setIsFinished(true);
+        gameSocket!.emit("text_finished");
+    }
 
     return (
         <div className="h-screen bg-neutral-800">
@@ -40,14 +70,35 @@ export default function GamePage() {
                 <div className="h-full p-10 pb-24">
 
                 </div>
-                <div className="col-span-2 bg-neutral-800">
-                    <div className="h-3/5">
-                        <TypeForm
-                            textToType="Алиса уже почти догнала его, вслед за ним повернув за угол, но Кролика больше не было видно: она находилась в длинном низком зале, освещенном рядом ламп, свисающих с потолка. По обе стороны зала всюду были двери, но все запертые. Алиса обошла обе стены, пробуя каждую дверь, и затем печально вернулась на середину зала, спрашивая себя, каким путем и когда она выйдет отсюда. Вдруг Алиса очутилась перед маленьким трехногим столом, целиком сделанным из толстого стекла. На столе не было ничего, кроме крошечного золотого ключика."
-                            fontSize="30px" />
-                        <div className="h-2/5 min-h-[40%] px-10 py-20">
+                <div className="col-span-2  bg-neutral-800">
+                    <div className="h-full flex flex-col">
+                        {isStarted ?
 
-                        </div>
+                            isFinished ?
+                                place > 0 ?
+                                    <div className="text-5xl text-white font-extrabold m-auto">
+                                        <div>
+                                            Вы заняли {place} место!
+                                        </div>
+                                        <div>
+                                            <Link to="/" className="underline">На Главную</Link>
+                                        </div>
+                                    </div>
+                                    :
+                                    <div className="text-5xl text-white font-extrabold m-auto">
+                                        Ожидание результатов
+                                    </div>
+                                :
+                                <TypeForm
+                                    onTextComplete={finish}
+                                    textToType="Алиса уже почти догнала его."
+                                    fontSize="30px" />
+                            :
+                            <div className="text-5xl text-white font-extrabold m-auto">
+                                Ожидание игроков
+                            </div>
+                        }
+
                     </div>
                 </div>
                 <div className="h-full p-10 pb-24">
