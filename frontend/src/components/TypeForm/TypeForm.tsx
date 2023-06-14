@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./TypeForm.css";
 import "../../assets/fonts/UbuntuMono-R.ttf";
 import useInterval from "../../hooks/useInterval";
@@ -26,6 +26,11 @@ function TypeForm(props: any) {
 
     useInterval(timeRefreshTick, 100);
 
+    useEffect(() => {
+        if (props.focusOnStart) {
+            userInputRef.current?.focus();
+        }
+    }, [])
 
     const createErrorMask = (input: string, word: string) => {
         let isCaretPlaced: boolean = false;
@@ -169,6 +174,10 @@ function TypeForm(props: any) {
     );
 }
 
-TypeForm.defaultProps = { textToType: "The quick brown fox jumps over the lazy dog", textHeight: "30px" }
+TypeForm.defaultProps = {
+    textToType: "The quick brown fox jumps over the lazy dog",
+    textHeight: "30px",
+    focusOnStart: false,
+}
 
 export default TypeForm;

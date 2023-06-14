@@ -108,7 +108,7 @@ function Friendlist() {
                 </div>
                 <div className="flex gap-2">
                     <div className="border px-1">
-                        <input value="пригласить" type="button" />
+                        <input value="Пригласить" onClick={()=>{socket.emit("invite", props.player.id)}} type="button" />
                     </div>
                     <div className="border w-6 px-2">
                         <input value="X" onClick={deleteFriend} type="button" />

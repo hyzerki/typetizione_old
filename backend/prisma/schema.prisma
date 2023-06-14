@@ -12,6 +12,7 @@ model game {
   type              game_type
   date_time         DateTime            @default(now()) @db.Timestamp(6)
   text_id           Int
+  status            game_status         @default(not_started)
   text_to_type      text_to_type        @relation(fields: [text_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   player_game_stats player_game_stats[]
 }
@@ -41,15 +42,15 @@ model friend_relation {
 model player_game_stats {
   game_id     Int
   player_id   Int
-  rating      Int?         @db.SmallInt
-  rating_gain Int?         @db.SmallInt
-  wpm         Int?         @db.SmallInt
-  cpm         Int?         @db.SmallInt
-  accuracy    Decimal?     @db.Decimal(5, 2)
+  rating      Int?          @db.SmallInt
+  rating_gain Int?          @db.SmallInt
+  wpm         Int?          @db.SmallInt
+  cpm         Int?          @db.SmallInt
+  accuracy    Decimal?      @db.Decimal(5, 2)
   typing_time Int?
-  game_status game_status? @default(not_started)
-  game        game         @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  player      player       @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  status      player_status @default(not_connected)
+  game        game          @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  player      player        @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([game_id, player_id])
 }
@@ -85,6 +86,12 @@ enum text_language {
 
 enum game_status {
   not_started
+  in_progress
+  finished
+}
+
+enum player_status {
+  not_connected
   left
   afk
   finished

@@ -7,7 +7,7 @@ import Seeker from './class/Seeker';
 import Lobby from './interface/Lobby';
 import { Inject } from '@nestjs/common';
 
-const GAME_MAX_PLAYERS = 1;
+const GAME_MAX_PLAYERS = 2;
 
 
 
@@ -49,8 +49,9 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
    */
   @SubscribeMessage("invite")
   handleInvite(client: Socket, payload: any) {
+    //console.log(payload);
     const player_id = client.data.player_id as string;
-    this.server.to(payload).emit("invite", player_id);
+    this.server.to(payload.toString()).emit("invite", player_id);
   }
 
   /**
