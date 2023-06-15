@@ -12,10 +12,25 @@ export class PlayerController {
         return this.playerService.findOne({id: parseInt(params.id)});
     }
 
+    @Get(":id/stats")
+    getStats(@Param() params: any){
+        return this.playerService.getStats(+params.id);
+    }
+
     @UseGuards(AuthGuard)
     @Get(":id/friends")
     getFriends(@Param() params: any){
         return this.playerService.findFriendsOfPlayer(parseInt(params.id));
+    }
+
+    @Get("lb/rating")
+    getRatingLB(){
+        return this.playerService.getRatingLB();
+    }
+
+    @Get("lb/cpm")
+    getCpmLB(){
+        return this.playerService.getCpmLB();
     }
 
     @UseGuards(AuthGuard)
@@ -23,5 +38,4 @@ export class PlayerController {
     updatePlayerUsername(@Req() req: any){
         return this.playerService.updatePlayerUsername(req);
     }
-
 }

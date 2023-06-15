@@ -55,12 +55,13 @@ create table player_game_stats
 	status player_status not null default('not_connected'),
 	rating smallint,
 	rating_gain smallint,
-	wpm smallint,
-	cpm smallint,
+	wpm numeric(8,2),
+	cpm numeric(8,2),
 	accuracy numeric(5,2),
-	typing_time int,
+	typing_time numeric(9,3),
 	primary key(game_id, player_id)
 );
+
 
 
 drop table player_game_stats;

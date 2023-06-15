@@ -12,7 +12,7 @@ export class GameService {
         private prisma: PrismaService,
         @Inject(forwardRef(() => LobbyGateway))
         private lobbyGateway: LobbyGateway,
-        @Inject(forwardRef(()=>GameGateway))
+        @Inject(forwardRef(() => GameGateway))
         private gameGateway: GameGateway
     ) { }
 
@@ -44,7 +44,7 @@ export class GameService {
         let textId = texts[Math.floor(Math.random() * texts.length)];
 
         // let players = seekers.map((seeker: Seeker) => { return seeker.players }).flat(3).map((player) => { return { player_id: +player.player_id } });
-        let players = seekers.flatMap(s => s.players).map(p => { return { player_id: +p.player_id }});
+        let players = seekers.flatMap(s => s.players).map(p => { return { player_id: +p.player_id } });
 
         //todo добавить вместе с игрой ещё и игроков(pgs) https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#create-a-single-record-and-multiple-related-records
         //создать игру и добавить туда pgs
@@ -85,6 +85,14 @@ export class GameService {
         return this.prisma.game.findUnique({
             where: gameWhereUniqueInput,
         });
+    }
+
+    getGameHistoryByPlayerId(player_id: number) {
+        return this.prisma.player_game_stats.findMany({
+            include: { game: { include: { text_to_type: { select: { text_language: true } } } } },
+            where: { player_id },
+            orderBy: { game: { date_time: 'desc' } }
+        })
     }
 
     getLanguages(seekers: Seeker[]): string[] {

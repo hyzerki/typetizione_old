@@ -14,7 +14,7 @@ export default function GamePage() {
     const [socketError, setSocketError] = useState(false);
     const [isStarted, setIsStarted] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
-    const [isResult, setIsResult] = useState(false);
+    const [result, setResult] = useState<any>(null);
     const [textToType, setTextToType] = useState("");
     const [place, setPlace] = useState(-1);
     const navigate = useNavigate();
@@ -26,8 +26,8 @@ export default function GamePage() {
     function handleResult(res: any) {
         // alert(res);
         console.log(res);
-        setIsResult(true);
-        setPlace(res.place)
+        setResult(res);
+        //setPlace(res.place)
     }
 
     function handleStart(ttt: any) {
@@ -63,7 +63,7 @@ export default function GamePage() {
                 },
             })
         socket.on('disconnect', () => {
-            //navigate("/");
+            navigate("/");
             console.log("Disconnect");
         });
         socket.on("game_start", handleStart)
@@ -85,9 +85,9 @@ export default function GamePage() {
         }
     }, []);
 
-    function finish() {
+    function finish(arg:any) {
         setIsFinished(true);
-        gameSocket!.emit("text_finished");
+        gameSocket!.emit("text_finished", arg);
     }
 
     function Player(props: any) {
@@ -139,10 +139,24 @@ export default function GamePage() {
                         {!gameWontStart ?
                             isStarted ?
                                 isFinished ?
-                                    place > 0 ?
+                                    result ?
                                         <div className="text-5xl text-white font-extrabold m-auto">
                                             <div>
-                                                Вы заняли {place} место!
+                                                Вы заняли {result.place} место!
+                                            </div>
+                                            <div className="flex text-xl gap-1 items-stretch">
+                                                <div>
+                                                    [cpm: {result.cpm.toFixed(2)}]
+                                                </div>
+                                                <div>
+                                                    [wpm: {result.wpm.toFixed(2)}]
+                                                </div>
+                                                <div>
+                                                    [accuracy: {result.accuracy}%]
+                                                </div>
+                                                <div>
+                                                    [time: {result.time} s.]
+                                                </div>
                                             </div>
                                             <div>
                                                 <Link to="/" className="underline">На Главную</Link>

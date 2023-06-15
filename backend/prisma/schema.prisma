@@ -44,10 +44,10 @@ model player_game_stats {
   player_id   Int
   rating      Int?          @db.SmallInt
   rating_gain Int?          @db.SmallInt
-  wpm         Int?          @db.SmallInt
-  cpm         Int?          @db.SmallInt
+  wpm         Decimal?      @db.Decimal(8, 2)
+  cpm         Decimal?      @db.Decimal(8, 2)
   accuracy    Decimal?      @db.Decimal(5, 2)
-  typing_time Int?
+  typing_time Decimal?      @db.Decimal(9, 3)
   status      player_status @default(not_connected)
   game        game          @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   player      player        @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)

@@ -51,12 +51,6 @@ export default function Example(props: any) {
                                         </div>
                                         <div className="relative mt-6 flex-1 px-4 sm:px-6">
                                             <div>
-                                                mmr: 1000
-                                            </div>
-                                            <div>
-                                                leaderboard: #1000
-                                            </div>
-                                            <div>
                                                 <input type="button"
                                                     onClick={handleQueueStart}
                                                     value="Начать поиск"

@@ -7,7 +7,7 @@ import Seeker from './class/Seeker';
 import Lobby from './interface/Lobby';
 import { Inject } from '@nestjs/common';
 
-const GAME_MAX_PLAYERS = 2;
+const GAME_MAX_PLAYERS = 1;
 
 
 
@@ -25,7 +25,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
 
   constructor(private lobbyService: LobbyService, private playerService: PlayerService, private gameService: GameService) { }
 
-  //todo перенести хранение лобби в redis
   static lobbies: Map<string, Lobby> = new Map();
   static searchQueue: Seeker[] = new Array<Seeker>();
 
@@ -201,9 +200,7 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
     console.log("🚀 ~ file: lobby.gateway.ts:195 ~ LobbyGateway ~ handleStartRankedSearch ~ newSeeker:", newSeeker)
     LobbyGateway.searchQueue.push(newSeeker)
     this.server.to(lobby.id).emit("start_queue");
-    //todo если игроков в группе такое колличество или больше того, что требуется для начала игры - сразу создавать им игру без помещения в очередь
     if (lobby.players.length >= GAME_MAX_PLAYERS) {
-      console.log("СРАЗУ СТАРТУЕМ!");
       clearInterval(newSeeker.boundUpdateInterval);
       this.server.to(lobby.id).emit("cancel_queue");
       this.gameService.createGame([newSeeker]);
@@ -244,12 +241,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       seeker.gameType === seeker2.gameType
     );
 
-    //теперь надо из того, что нашло собрать нам фул игру
-    /*
-      два цикла i и j для каждого iтого ищем несколько jтых чтобы 
-  
-    */
-
     let readyCombinations: Seeker[] = [];
 
     for (let i = 0; i < suitableSeekers.length; i++) {
@@ -260,8 +251,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
         break;
       }
 
-      //comb.map(element => element.players.length).reduce((a, b) => a+b)
-      //далее надо проверить может ли ещё 
       let potentialComb = [...comb];
       for (let j = i + 1; j < suitableSeekers.length; j++) {
         if (countPlayers(potentialComb) + suitableSeekers[j].players.length > GAME_MAX_PLAYERS) {
@@ -288,7 +277,6 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       clearInterval(combi.boundUpdateInterval);
       this.server.to(combi.id).emit("cancel_queue");
     });
-    console.log("🚀 ~ file: lobby.gateway.ts:285 ~ LobbyGateway ~ findMatch ~ readyCombinations:", readyCombinations)
 
 
 

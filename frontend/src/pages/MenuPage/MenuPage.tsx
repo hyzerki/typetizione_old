@@ -11,6 +11,7 @@ import { io } from "socket.io-client";
 import { socketErrorState } from "../../state/socketErrorState";
 import Party from "./Party";
 import PlayerPage from "./PlayerPage";
+import LeaderBoardPage from "./LeaderBoardPage";
 
 function MenuPage() {
     const [open, setOpen] = React.useState(false)
@@ -39,11 +40,11 @@ function MenuPage() {
         setIsSearching(false);
     }
 
-    function handleGameFound(payload:any){
-        navigate("/play/"+payload.id);
+    function handleGameFound(payload: any) {
+        navigate("/play/" + payload.id);
     }
 
-    function cancelQueue(){
+    function cancelQueue() {
         socket.emit("cancel_queue");
     }
 
@@ -84,10 +85,7 @@ function MenuPage() {
                     </div>
                 </div>
                 <div>
-                    <Link to="/ladder">ladder</Link>
-                </div>
-                <div>
-                    <Link to="/friends">friends</Link>
+                    <Link to="/leaderboard">Таблица лидеров</Link>
                 </div>
             </nav>
 
@@ -118,6 +116,7 @@ function MenuPage() {
             <Routes>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/auth/*" element={<AuthPage />} />
+                <Route path="/leaderboard" element={<LeaderBoardPage />} />
                 <Route path="/player/:id" element={<PlayerPage />} />
             </Routes>
 

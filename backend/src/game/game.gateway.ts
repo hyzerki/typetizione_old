@@ -51,7 +51,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           и отключить остальных игроков  
         */
 
-        //тут раздаём уёбкам по -25
         game.players.forEach(async p => {
           if (!p.isConnected) {
             await this.prisma.player_game_stats.update({
@@ -92,11 +91,23 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       clearTimeout(game.loadTimeout);
     }
     game.isStarted = true;
+    await this.prisma.game.update({
+      where: { id: gameId },
+      data: {
+        status: game_status.in_progress,
+      }
+    });
     let text_to_type = await this.prisma.text_to_type.findUnique({ where: { id: game.text_id } });
     this.server.to(gameId.toString()).emit("game_start", text_to_type);
 
-    game.afkTimeout = setTimeout(() => {
+    game.afkTimeout = setTimeout(async () => {
       game.isFinished = true;
+      await this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          status: game_status.finished,
+        }
+      });
       game.players.forEach(async p => {
         if (p.isConnected && !p.isFinished) {
           await this.prisma.player_game_stats.update({
@@ -122,7 +133,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   //проверяет все ли игроки закончили и если да, то завершает игру (без таймаута в 10 минут для афк)
-  checkIfGameCanBeFinished(gameId: number) {
+  async checkIfGameCanBeFinished(gameId: number) {
     let game = this.games.get(gameId);
     if (!game) { return; }
 
@@ -131,6 +142,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
     //todo завершение игры удаление из games
     game.isFinished = true;
+    await this.prisma.game.update({
+      where: { id: gameId },
+      data: {
+        status: game_status.finished,
+      }
+    });
     clearTimeout(game.afkTimeout);
     this.games.delete(gameId);
   }
@@ -215,7 +232,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (!game) {
       return;
     }
-    this.server.to(game.id.toString()).emit("player_disconnected",  [...game.players.values()]);
+    this.server.to(game.id.toString()).emit("player_disconnected", [...game.players.values()]);
     if (game.isStarted) {
       await this.prisma.player_game_stats.update({
         where: {
@@ -236,7 +253,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage("text_finished")
   async handleFinish(client: Socket, payload: any) {
-    //todo взять данные о вводе с клиента (payload), высчитать wpm cpm
     let game = this.games.get(client.data.gameId);
     if (!game) {
       client.data.disconnectedByServer = true;
@@ -245,22 +261,32 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
     if (game.isStarted) {
       let place = ++game.finished;
+      const { accuracy, time } = payload;
+      const text = await this.prisma.text_to_type.findUnique({ where: { id: game.text_id } });
+      const wpm = (text.text_length / 5.28) / (time / 60);
+      const cpm = text.text_length / (time / 60);
+      const player = await this.prisma.player.findUnique({ where: { id: client.data.id } });
       await this.prisma.player_game_stats.update({
         where: {
           game_id_player_id: { game_id: game.id, player_id: client.data.id }
         },
         data: {
           status: player_status.finished,
-          rating_gain: place <= 2 ? +25 : -25,
+          rating_gain: place <= Math.ceil(game.players.size / 2) ? +25 : -25,
+          accuracy,
+          cpm,
+          wpm,
+          typing_time: time,
+          rating: player.rating,
           player: {
             update: {
-              rating: place <= 2 ? { increment: 25 } : { decrement: 25 }
+              rating: place <= Math.ceil(game.players.size / 2) ? { increment: 25 } : { decrement: 25 }
             }
           }
         }
       })
       client.data.isFinished = true;
-      client.emit("result", { place: place });
+      client.emit("result", { place, wpm, cpm, accuracy, time });
     }
   }
 

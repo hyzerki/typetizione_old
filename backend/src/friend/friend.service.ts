@@ -8,8 +8,15 @@ export class FriendService {
     constructor(private prisma: PrismaService, private lobbyGateway: LobbyGateway) { }
 
     async addPlayerToFriends(req: any) {
+        if(req.body.id ===req.user.sub){
+            return;
+        }
         this.lobbyGateway.server.to(req.body.id.toString()).emit("invalidate_friendlist");
-        return this.prisma.friend_relation.create({ data: { friend_one: req.user.sub, friend_two: req.body.id } });
+        return this.prisma.friend_relation.upsert({
+            where: { friend_one_friend_two: { friend_one: req.body.id, friend_two: req.user.sub } },
+            update: {},
+            create: { friend_one: req.user.sub, friend_two: req.body.id }
+        });
     }
 
     async acceptFriendRequest(req: any) {

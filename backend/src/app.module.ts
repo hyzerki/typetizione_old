@@ -11,6 +11,7 @@ import { FriendModule } from './friend/friend.module';
 import { FriendService } from './friend/friend.service';
 import { LobbyModule } from './lobby/lobby.module';
 import { GameModule } from './game/game.module';
+import { TextModule } from './text/text.module';
 
 
 @Module({
@@ -23,6 +24,7 @@ import { GameModule } from './game/game.module';
     FriendModule,
     LobbyModule,
     GameModule,
+    TextModule,
   ],
   providers: [PrismaService, PlayerService, FriendService],
 })
