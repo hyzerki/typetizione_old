@@ -20,6 +20,8 @@ export default class Seeker implements Lobby {
         this.upperBound = upperBound;
 
         this.boundUpdateInterval = setInterval(() => {
+            console.log(this.players[0]);
+            console.log(`New Bounds: ${this.lowerBound}->${this.lowerBound - 100}`);
             console.log(`New Bounds: ${this.upperBound}->${this.upperBound + 100}`);
             this.lowerBound -= 100;
             this.upperBound += 100;

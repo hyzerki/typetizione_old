@@ -7,7 +7,7 @@ import Seeker from './class/Seeker';
 import Lobby from './interface/Lobby';
 import { Inject } from '@nestjs/common';
 
-const GAME_MAX_PLAYERS = 1;
+const GAME_MAX_PLAYERS = 2;
 
 
 
@@ -231,15 +231,12 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       &&
       seeker.players.length + seeker2.players.length <= GAME_MAX_PLAYERS
       &&
-      seeker.lowerBound <= seeker2.lowerBound
+      seeker.upperBound >= seeker2.lowerBound
       &&
-      seeker.upperBound >= seeker2.upperBound
-      &&
+      seeker2.upperBound >= seeker.lowerBound
+      
       //смотрим совпадает ли хотябы один режим игры
-      seeker.languages.some(t1 => seeker2.languages.includes(t1))
-      &&
-      seeker.gameType === seeker2.gameType
-    );
+      );
 
     let readyCombinations: Seeker[] = [];
 
