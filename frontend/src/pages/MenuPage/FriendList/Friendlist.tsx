@@ -49,7 +49,9 @@ function Friendlist() {
     }
 
     function Invite(props: any) {
-        //fix доделать
+        //fix доделать 
+        //блядь ну что я за еблан что тут доделать то надо сука
+
         const [invitor, setInvitor] = useState<any>(null);
         const [isLoading, setLoading] = useState(true);
         useLayoutEffect(() => {

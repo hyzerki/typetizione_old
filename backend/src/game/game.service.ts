@@ -31,7 +31,7 @@ export class GameService {
             language = languages[Math.floor(Math.random() * languages.length)];
         }
 
-        //todo refactor to $queryRaw
+        //todo refactor to $queryRaw (select top 1 from texts where id = random())
         let texts = await this.prisma.text_to_type.findMany({
             where: {
                 text_language: language
@@ -46,9 +46,7 @@ export class GameService {
         // let players = seekers.map((seeker: Seeker) => { return seeker.players }).flat(3).map((player) => { return { player_id: +player.player_id } });
         let players = seekers.flatMap(s => s.players).map(p => { return { player_id: +p.player_id } });
 
-        //todo добавить вместе с игрой ещё и игроков(pgs) https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#create-a-single-record-and-multiple-related-records
         //создать игру и добавить туда pgs
-
         let game = await this.prisma.game.create({
             data: {
                 type: game_type[gameType],
@@ -61,8 +59,6 @@ export class GameService {
             }
         });
 
-        //todo создание игры 
-        // this.gameGateway.games.set()
         this.gameGateway.addGame(game.id, textId.id, players);
 
         // раскидать всем инвайты в созданную игру

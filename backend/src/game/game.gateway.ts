@@ -140,7 +140,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (![...game.players.values()].every(p => p.isFinished)) {
       return;
     }
-    //todo завершение игры удаление из games
     game.isFinished = true;
     await this.prisma.game.update({
       where: { id: gameId },
@@ -210,7 +209,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     client.data.whitelistEntry = whitelistEntry;
     client.data.gameId = gameId;
     client.data.id = playerId;
-    //todo синхронизировать игрока и отпраить ему время конца ожидания (loadTimeout)
     client.emit("sync", { sent: Date.now(), waitTill: game.whenStopWait });
     this.server.to(gameId.toString()).emit("player_connected", [...game.players.values()]);
     this.checkIfGameCanRun(gameId);

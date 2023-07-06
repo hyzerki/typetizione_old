@@ -270,7 +270,10 @@ export default class LobbyGateway implements OnGatewayInit, OnGatewayConnection,
       return;
     }
 
+    //fix сикеры остаются в очереди на игру, и им может найти её повторно
     readyCombinations.forEach(combi => {
+      //todo: проверить пофиксил ли
+      LobbyGateway.searchQueue = LobbyGateway.searchQueue.filter(item => item.id !== combi.id);
       clearInterval(combi.boundUpdateInterval);
       this.server.to(combi.id).emit("cancel_queue");
     });

@@ -62,7 +62,6 @@ function PlayerPage() {
         }
     }
 
-    //todo вывод истории матчей, и статистики
     return (
 
         <div className="h-full bg-neutral-800">

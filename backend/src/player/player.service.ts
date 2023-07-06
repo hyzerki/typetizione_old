@@ -8,7 +8,6 @@ import PlayerResponse from './dto/player-response.dto';
 
 @Injectable()
 export class PlayerService {
-  //todo inject lobby gateway here
   constructor(private prisma: PrismaService) { }
 
   async findOne(playerWhereUniqueInput: Prisma.playerWhereUniqueInput,): Promise<PlayerResponse | null> {

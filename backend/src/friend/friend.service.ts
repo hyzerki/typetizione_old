@@ -4,7 +4,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FriendService {
-    //todo вызывать invalidate_frienlist чтобы перезагрузить список друзей у затронутых записей
     constructor(private prisma: PrismaService, private lobbyGateway: LobbyGateway) { }
 
     async addPlayerToFriends(req: any) {
