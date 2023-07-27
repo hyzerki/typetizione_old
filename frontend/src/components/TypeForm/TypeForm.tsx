@@ -24,6 +24,8 @@ function TypeForm(props: any) {
     //Refs
     const userInputRef: React.LegacyRef<HTMLInputElement> = useRef(null);
 
+    
+
     useInterval(timeRefreshTick, 100);
 
     useEffect(() => {

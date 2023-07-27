@@ -13,4 +13,6 @@ import { GameController } from './game.controller';
     exports: [GameGateway, GameService,],
     controllers: [GameController]
 })
-export class GameModule { }
+export class GameModule {
+    
+ }

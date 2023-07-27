@@ -12,6 +12,7 @@ import { FriendService } from './friend/friend.service';
 import { LobbyModule } from './lobby/lobby.module';
 import { GameModule } from './game/game.module';
 import { TextModule } from './text/text.module';
+import { RedisService } from './redis/redis.service';
 
 
 @Module({
@@ -26,6 +27,6 @@ import { TextModule } from './text/text.module';
     GameModule,
     TextModule,
   ],
-  providers: [PrismaService, PlayerService, FriendService],
+  providers: [PrismaService, PlayerService, FriendService, RedisService],
 })
 export class AppModule {}
