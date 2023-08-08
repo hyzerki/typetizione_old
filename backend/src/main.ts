@@ -6,8 +6,8 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const fs = require('fs');
-  const keyFile = fs.readFileSync('D:/Everything i need/ПСКП/Курсовой/typetizione/backend/ssl/localhost.key');
-  const certFile = fs.readFileSync('D:/Everything i need/ПСКП/Курсовой/typetizione/backend/ssl/localhost.crt');
+  const keyFile = fs.readFileSync('D:/study/ПСКП/Курсовой/typetizione/backend/ssl/localhost.key');
+  const certFile = fs.readFileSync('D:/study/ПСКП/Курсовой/typetizione/backend/ssl/localhost.crt');
   
   const app = await NestFactory.create(AppModule, {
     httpsOptions: {

@@ -6,6 +6,9 @@ import FriendsService from "../../../service/friendsService";
 import { partyInvitesState } from "../../../state/partyInvitesState";
 import { websocketState } from "../../../state/websocketState";
 import playerService from "../../../service/playerService";
+import { Disclosure } from "@headlessui/react";
+import { ChevronUpIcon } from '@heroicons/react/20/solid'
+
 
 
 
@@ -25,7 +28,7 @@ function Friendlist() {
         });
     }
 
-    function handleInvalidateFriendList(){
+    function handleInvalidateFriendList() {
         friendListRefresh();
     }
 
@@ -110,7 +113,7 @@ function Friendlist() {
                 </div>
                 <div className="flex gap-2">
                     <div className="border px-1">
-                        <input value="Пригласить" onClick={()=>{socket.emit("invite", props.player.id)}} type="button" />
+                        <input value="Пригласить" onClick={() => { socket.emit("invite", props.player.id) }} type="button" />
                     </div>
                     <div className="border w-6 px-2">
                         <input value="X" onClick={deleteFriend} type="button" />
@@ -219,51 +222,97 @@ function Friendlist() {
 
             <div>
                 {invites.length !== 0 ?
-                    <Fragment>
-                        <div>Приглашения в группу:</div>
-                        {
-                            invites.map((invite: any) => (
-                                <Invite key={invite} invite={invite} />
-                            ))
-                        }
-                        <hr />
-                    </Fragment>
+                    <Disclosure defaultOpen={true}>
+                        {({ open }) => (
+                            <>
+                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                    <span>Приглашения в группу</span>
+                                    <ChevronUpIcon
+                                        className={`${open ? 'rotate-180 transform' : ''
+                                            } h-5 w-5`}
+                                    />
+                                </Disclosure.Button>
+                                <Disclosure.Panel className="text-gray-500">
+                                    {
+                                        invites.map((invite: any) => (
+                                            <Invite key={invite} invite={invite} />
+                                        ))
+                                    }
+                                </Disclosure.Panel>
+                            </>
+                        )}
+                    </Disclosure>
                     : null
                 }
             </div>
 
             <div>
                 {incomingRequests.length !== 0 ?
-                    <Fragment>
-                        <div>Запросы на добавление в друзья:</div>
-                        {
-                            incomingRequests.map((relation: any) => (
-                                <IncomingRequest key={relation.related_player_one.id} player={relation.related_player_one} />
-                            ))
-                        }
-                        <hr />
-                    </Fragment>
+                    <Disclosure defaultOpen={true}>
+                        {({ open }) => (
+                            <>
+                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                    <span>Запросы на добавление в друзья</span>
+                                    <ChevronUpIcon
+                                        className={`${open ? 'rotate-180 transform' : ''
+                                            } h-5 w-5`}
+                                    />
+                                </Disclosure.Button>
+                                <Disclosure.Panel className="text-gray-500">
+                                    {
+                                        incomingRequests.map((relation: any) => (
+                                            <IncomingRequest key={relation.related_player_one.id} player={relation.related_player_one} />
+                                        ))
+                                    }
+                                </Disclosure.Panel>
+                            </>
+                        )}
+                    </Disclosure>
                     : null
                 }
             </div>
-
             <div>
-                <div>Друзья</div>
-                {friends.map((friend: any,) => (
-                    <Friend key={friend.id} player={friend} />
-                ))}
+                <Disclosure defaultOpen={true}>
+                    {({ open }) => (
+                        <>
+                            <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                <span>Друзья</span>
+                                <ChevronUpIcon
+                                    className={`${open ? 'rotate-180 transform' : ''
+                                        } h-5 w-5`}
+                                />
+                            </Disclosure.Button>
+                            <Disclosure.Panel className="text-gray-500">
+                                {friends.map((friend: any,) => (
+                                    <Friend key={friend.id} player={friend} />
+                                ))}
+                            </Disclosure.Panel>
+                        </>
+                    )}
+                </Disclosure>
             </div>
 
             <div>
                 {outgoingRequests.length !== 0 ?
-                    <Fragment>
-                        <hr />
-                        <div>Исходящие запросы:</div>
-                        {
-                            outgoingRequests.map((relation: any, index: string) => (
-                                <OutgoingRequest key={relation.related_player_two.id} player={relation.related_player_two} />
-                            ))}
-                    </Fragment>
+                    <Disclosure >
+                        {({ open }) => (
+                            <>
+                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                    <span>Исходящие запросы</span>
+                                    <ChevronUpIcon
+                                        className={`${open ? 'rotate-180 transform' : ''
+                                            } h-5 w-5`}
+                                    />
+                                </Disclosure.Button>
+                                <Disclosure.Panel className="text-gray-500">
+                                    {
+                                        outgoingRequests.map((relation: any, index: string) => (
+                                            <OutgoingRequest key={relation.related_player_two.id} player={relation.related_player_two} />
+                                        ))}
+                                </Disclosure.Panel>
+                            </>
+                        )}
+                    </Disclosure>
                     : null
                 }
             </div>

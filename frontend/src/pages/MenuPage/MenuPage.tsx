@@ -12,6 +12,7 @@ import { socketErrorState } from "../../state/socketErrorState";
 import Party from "./Party";
 import PlayerPage from "./PlayerPage";
 import LeaderBoardPage from "./LeaderBoardPage";
+import useInterval from "../../hooks/useInterval";
 
 function MenuPage() {
     const [open, setOpen] = React.useState(false)
@@ -59,6 +60,22 @@ function MenuPage() {
         }
     }, [socket])
 
+    function CancelSearchBar() {
+        const [searchTime, setSearchTime] = useState<number>(0);
+
+        useInterval(updateTime, 1000);
+
+        function updateTime(){
+            setSearchTime(prevTime=> prevTime+=1);
+        }
+
+        return (
+            <div className="text-white text-3xl">
+                ПОИСК ИГРЫ {Math.floor(searchTime/60)}:{(searchTime%60 + "").padStart(2, "0")}
+            </div>
+        )
+    }
+
     return (
         <div className='h-screen flex flex-col'>
             {
@@ -97,11 +114,14 @@ function MenuPage() {
             <div className="absolute bottom-3 right-3 ">
                 {
                     isSearching ?
-                        <div>
-                            <input type="button"
-                                onClick={cancelQueue}
-                                value="Прекратить поиск"
-                                className=" w-[360px] h-[60px] inline-flex justify-center rounded-md bg-red-600 text-sm font-semibold text-white shadow-sm hover:bg-red-500" />
+                        <div className="flex items-center gap-5">
+                            <CancelSearchBar />
+                            <div>
+                                <input type="button"
+                                    onClick={cancelQueue}
+                                    value="X"
+                                    className=" w-[60px] h-[60px] inline-flex justify-center rounded-md bg-red-600 text-sm font-semibold text-white shadow-sm hover:bg-red-500" />
+                            </div>
                         </div>
                         :
                         <input type="button"

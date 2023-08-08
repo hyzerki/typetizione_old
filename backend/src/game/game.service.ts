@@ -17,43 +17,7 @@ export class GameService {
         private gameGateway: GameGateway
     ) { }
 
-    handleConnection(client:Socket) {
-        const gameId = parseInt(client.handshake.query.game_id as string);
-        const playerId = parseInt(client.handshake.query.player_id as string);
-        let game = this.games.get(gameId);
-        if (!game) {
-            client.data.disconnectedByServer = true;
-            console.log("GAME: Игра не существует");
-            client.disconnect();
-            return;
-        }
-        if (game.isStarted) {
-            client.data.disconnectedByServer = true;
-            console.log("GAME: Игра уже началась");
-            client.disconnect();
-            return;
-        }
-
-        let whitelistEntry = game.players.get(playerId);
-        if (!whitelistEntry) {
-            client.data.disconnectedByServer = true;
-            console.log("GAME: игрок не найден в запрашиваемой игре");
-            client.disconnect();
-            return;
-        }
-
-
-
-        client.join(gameId.toString());
-        whitelistEntry.isConnected = true;
-        client.data.whitelistEntry = whitelistEntry;
-        client.data.gameId = gameId;
-        client.data.id = playerId;
-        client.emit("sync", { sent: Date.now(), waitTill: game.whenStopWait });
-        this.server.to(gameId.toString()).emit("player_connected", [...game.players.values()]);
-        this.checkIfGameCanRun(gameId);
-        console.log(`GAME: Игрок ${playerId} успешно подключился к игре`);
-    }
+   
 
     async createGame(seekers: Seeker[]) {
         console.log("🚀 ~ file: game.service.ts:17 ~ GameService ~ createGame ~ seekers:", seekers)
