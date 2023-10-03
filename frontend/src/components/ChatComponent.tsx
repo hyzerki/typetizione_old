@@ -87,7 +87,7 @@ function ChatComponent() {
 
 
     return (
-        <div className="h-full flex flex-col   bg-neutral-700">
+        <div className="h-full flex flex-col glass rounded-xl overflow-auto">
             {!!currentPlayer ?
                 <Fragment>
                     <div ref={messagesDivRef} className="shrink-0 h-[0] grow-[20] overflow-auto ">

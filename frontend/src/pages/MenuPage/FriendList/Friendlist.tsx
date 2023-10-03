@@ -7,7 +7,8 @@ import { partyInvitesState } from "../../../state/partyInvitesState";
 import { websocketState } from "../../../state/websocketState";
 import playerService from "../../../service/playerService";
 import { Disclosure } from "@headlessui/react";
-import { ChevronUpIcon } from '@heroicons/react/20/solid'
+import { ChevronUpIcon, PlusCircleIcon, PlusIcon, UserMinusIcon, UserPlusIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import { Link } from "react-router-dom";
 
 
 
@@ -79,7 +80,7 @@ function Friendlist() {
 
         return (
 
-            <div className="flex">
+            <div className="flex py-2 group">
                 {isLoading && !invitor ?
                     <div className="w-full">
                         Загрузка..
@@ -87,11 +88,13 @@ function Friendlist() {
                     :
                     <Fragment>
                         <div className="w-full">
-                            {invitor.username}
+                            <Link to={"/player/" + invitor.id}>
+                                {invitor.username}
+                            </Link>
                         </div>
-                        <div className="flex gap-2">
-                            <div className="border  px-2">
-                                <input value="Присоединиться" onClick={joinLobby} type="button" />
+                        <div className="flex gap-2 invisible group-hover:visible">
+                            <div className="border glass rounded-sm h-[1.65em] w-[1.65em]">
+                                <button onClick={joinLobby}><PlusCircleIcon className="h-full w-full" /></button>
                             </div>
                         </div>
                     </Fragment>
@@ -107,16 +110,18 @@ function Friendlist() {
         }
 
         return (
-            <div className="flex">
+            <div className="flex py-2 group">
                 <div className="w-full">
-                    {props.player.username}
+                    <Link to={"/player/" + props.player.id}>
+                        {props.player.username}
+                    </Link>
                 </div>
-                <div className="flex gap-2">
-                    <div className="border px-1">
-                        <input value="Пригласить" onClick={() => { socket.emit("invite", props.player.id) }} type="button" />
+                <div className="flex gap-2 invisible group-hover:visible">
+                    <div className="border glass rounded-sm h-[1.65em] w-[1.65em]">
+                        <button onClick={() => { socket.emit("invite", props.player.id) }}><PlusCircleIcon className="h-full w-full" /></button>
                     </div>
-                    <div className="border w-6 px-2">
-                        <input value="X" onClick={deleteFriend} type="button" />
+                    <div className="border glass h-[1.65em] w-[1.65em] rounded-sm ">
+                        <button onClick={deleteFriend}><UserMinusIcon className="h-full w-full" /></button>
                     </div>
                 </div>
             </div>
@@ -134,16 +139,20 @@ function Friendlist() {
             friendListRefresh();
         }
         return (
-            <div id={props.id} className="flex">
+            <div id={props.id} className="flex py-2 group">
                 <div className="w-full">
-                    {props.player.username}
+                    <Link to={"/player/" + props.player.id}>
+                        {props.player.username}
+                    </Link>
                 </div>
-                <div className="flex gap-2">
-                    <div className="border w-6 px-1">
-                        <input onClick={acceptFriendRequest} value="+" type="button" />
+                <div className="flex gap-2 invisible group-hover:visible">
+                    <div className="border glass rounded-sm w-[1.65em] h-[1.65em]">
+                        <button onClick={acceptFriendRequest}><UserPlusIcon className="h-full w-full" /></button>
+
                     </div>
-                    <div className="border w-6 px-2">
-                        <input value="X" onClick={declineRequest} type="button" />
+                    <div className="border glass rounded-sm w-[1.65em] h-[1.65em]">
+                        <button onClick={declineRequest}><XMarkIcon className="h-full w-full" /></button>
+
                     </div>
                 </div>
             </div>
@@ -157,15 +166,16 @@ function Friendlist() {
             friendListRefresh();
         }
         return (
-            <div className="flex">
+            <div className="flex py-2 group">
                 <div className="w-full">
-                    {props.player.username}
+                    <Link to={"/player/" + props.player.id}>
+                        {props.player.username}
+                    </Link>
                 </div>
-                <div className="">
-                    <div className="border w-6 px-2">
-                        <input onClick={cancellRequest} value="X" type="button" />
+                <div className="invisible group-hover:visible">
+                    <div className="border glass rounded-sm w-[1.65em] h-[1.65em]">
+                        <button onClick={cancellRequest}><XMarkIcon className="h-full w-full" /></button>
                     </div>
-
                 </div>
             </div>
         )
@@ -191,9 +201,6 @@ function Friendlist() {
         return full;
     }
 
-
-
-
     if (!!!currentPlayer) {
         return (
             <div className="text-3xl text-white ml-4">
@@ -202,37 +209,25 @@ function Friendlist() {
         )
     }
 
-
     const outgoingRequests = friendListData.initiated_relations.filter((relation: any) => !relation.is_accepted);
     const incomingRequests = friendListData.proposed_relations.filter((relation: any) => !relation.is_accepted);
     const friends = getFriends();
 
-
     return (
         <Fragment>
-            <div className="bg-neutral-600 text-white flex">
-                <div className="grow">
-                    Добавить друга <input ref={friendCodeInputRef} className="bg-neutral-400 w-20" type="number" />
-                    <input type="button" onClick={sendFriendRequest} value="Отправить" className="bg-neutral-600 border border-neutral-900 text-white" />
-                </div>
-                <div>
-                    {"Ваш код: " + currentPlayer.id}
-                </div>
-            </div>
-
             <div>
                 {invites.length !== 0 ?
                     <Disclosure defaultOpen={true}>
                         {({ open }) => (
                             <>
-                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                <Disclosure.Button className="p-2 glass w-full flex justify-between">
                                     <span>Приглашения в группу</span>
                                     <ChevronUpIcon
                                         className={`${open ? 'rotate-180 transform' : ''
                                             } h-5 w-5`}
                                     />
                                 </Disclosure.Button>
-                                <Disclosure.Panel className="text-gray-500">
+                                <Disclosure.Panel className="text-white px-2">
                                     {
                                         invites.map((invite: any) => (
                                             <Invite key={invite} invite={invite} />
@@ -251,14 +246,14 @@ function Friendlist() {
                     <Disclosure defaultOpen={true}>
                         {({ open }) => (
                             <>
-                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                <Disclosure.Button className="p-2 glass w-full flex justify-between">
                                     <span>Запросы на добавление в друзья</span>
                                     <ChevronUpIcon
                                         className={`${open ? 'rotate-180 transform' : ''
                                             } h-5 w-5`}
                                     />
                                 </Disclosure.Button>
-                                <Disclosure.Panel className="text-gray-500">
+                                <Disclosure.Panel className="text-white px-2">
                                     {
                                         incomingRequests.map((relation: any) => (
                                             <IncomingRequest key={relation.related_player_one.id} player={relation.related_player_one} />
@@ -275,14 +270,14 @@ function Friendlist() {
                 <Disclosure defaultOpen={true}>
                     {({ open }) => (
                         <>
-                            <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                            <Disclosure.Button className="p-2 glass w-full flex justify-between">
                                 <span>Друзья</span>
                                 <ChevronUpIcon
                                     className={`${open ? 'rotate-180 transform' : ''
                                         } h-5 w-5`}
                                 />
                             </Disclosure.Button>
-                            <Disclosure.Panel className="text-gray-500">
+                            <Disclosure.Panel className="text-white px-2">
                                 {friends.map((friend: any,) => (
                                     <Friend key={friend.id} player={friend} />
                                 ))}
@@ -291,20 +286,19 @@ function Friendlist() {
                     )}
                 </Disclosure>
             </div>
-
             <div>
                 {outgoingRequests.length !== 0 ?
                     <Disclosure >
                         {({ open }) => (
                             <>
-                                <Disclosure.Button className="py-2 bg-neutral-500 w-full flex justify-between">
+                                <Disclosure.Button className="p-2 glass w-full flex justify-between">
                                     <span>Исходящие запросы</span>
                                     <ChevronUpIcon
                                         className={`${open ? 'rotate-180 transform' : ''
                                             } h-5 w-5`}
                                     />
                                 </Disclosure.Button>
-                                <Disclosure.Panel className="text-gray-500">
+                                <Disclosure.Panel className="text-white px-2">
                                     {
                                         outgoingRequests.map((relation: any, index: string) => (
                                             <OutgoingRequest key={relation.related_player_two.id} player={relation.related_player_two} />

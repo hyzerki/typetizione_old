@@ -13,6 +13,7 @@ import Party from "./Party";
 import PlayerPage from "./PlayerPage";
 import LeaderBoardPage from "./LeaderBoardPage";
 import useInterval from "../../hooks/useInterval";
+import { XMarkIcon } from "@heroicons/react/20/solid";
 
 function MenuPage() {
     const [open, setOpen] = React.useState(false)
@@ -77,14 +78,14 @@ function MenuPage() {
     }
 
     return (
-        <div className='h-screen flex flex-col'>
+        <div className="h-screen flex flex-col bg-[url('/topographic.jpg')]">
             {
                 !!currentPlayer && socketEror ?
                     <div className="text-neutral-100 bg-red-800">Подключение к сети typetizione</div>
                     :
                     null
             }
-            <nav className="flex  flex-row h-14 gap-x-40 bg-neutral-700">
+            <nav className="flex  flex-row h-14 gap-x-40 glass">
                 <div className="flex align-middle items-center">
                     {
                         !!currentPlayer ?
@@ -117,17 +118,18 @@ function MenuPage() {
                         <div className="flex items-center gap-5">
                             <CancelSearchBar />
                             <div>
-                                <input type="button"
+                                <button type="button"
                                     onClick={cancelQueue}
-                                    value="X"
-                                    className=" w-[60px] h-[60px] inline-flex justify-center rounded-md bg-red-600 text-sm font-semibold text-white shadow-sm hover:bg-red-500" />
+                                    className=" w-[60px] h-[60px] inline-flex justify-center rounded-md bg-red-600 text-sm font-semibold text-white shadow-sm hover:bg-red-500" >
+                                        <XMarkIcon/>
+                                    </button>
                             </div>
                         </div>
                         :
                         <input type="button"
                             onClick={openSideover}
                             value="Начать игру"
-                            className=" w-[360px] h-[60px] inline-flex justify-center rounded-md bg-green-600 text-sm font-semibold text-white shadow-sm hover:bg-green-500" />
+                            className=" w-[360px] h-[60px] inline-flex justify-center rounded-md bg-lime-500/50 backdrop-blur-sm text-sm font-semibold text-white shadow-sm hover:bg-green-500" />
                 }
             </div>
             <SideOver isOpen={open} setOpen={openSideover} setClose={closeSideover} />

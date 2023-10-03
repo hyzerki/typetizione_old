@@ -31,7 +31,7 @@ function Party() {
 
 
         return (
-            <Popover className="relative ">
+            <Popover className="relative z-50 border-white border-1">
                 <Popover.Button className="focus:outline-none">
                     <div className={` h-[60px] w-[60px] text-6xl align-middle ${currentPlayer?.id == player.player_id ? "text-sky-500 border-sky-500 border-4" : ""} bg-neutral-200`}>
                         {
@@ -40,7 +40,7 @@ function Party() {
                     </div>
                 </Popover.Button>
                 <Popover.Panel className="absolute min-w-max bottom-[70px] p-2 backdrop-blur-sm bg-white/10  text-neutral-100 rounded-lg">
-                    <div className="font-bold bg-white/10 backdrop-blur-sm rounded-md">
+                    <div className="font-bold glass rounded-md">
                         {player.username}
                     </div>
                     <div>

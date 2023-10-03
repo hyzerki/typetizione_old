@@ -15,9 +15,6 @@ function TypeForm(props: any) {
     const [isUserInputFocused, setIsUserInputFocused] = useState(false);
     const [commitedText, setCommitedText] = useState("");
     //Stats states
-    const [startTime, setStartTime] = useState(() => Date.now());
-    const [currentTime, setCurrentTime] = useState(0);
-    const [resultTime, setResultTime] = useState(0);
     const [errorsAmount, setErrorsAmount] = useState(0);
     const [errorsMadePreviously, setErrorsMadePreviously] = useState(false);
 
@@ -26,13 +23,20 @@ function TypeForm(props: any) {
 
     
 
-    useInterval(timeRefreshTick, 100);
 
     useEffect(() => {
         if (props.focusOnStart) {
             userInputRef.current?.focus();
         }
     }, [])
+
+    useEffect(()=>{
+        props.setTypingStats({
+            commitedText,
+            errorsAmount
+            
+        })
+    },[commitedText,errorsAmount])
 
     const createErrorMask = (input: string, word: string) => {
         let isCaretPlaced: boolean = false;
@@ -78,10 +82,7 @@ function TypeForm(props: any) {
             props.onChange();
     };
 
-    function timeRefreshTick() {
-        console.log(startTime);
-        setCurrentTime(Date.now() - startTime);
-    }
+
 
     const onUserInputKeyPress = (
         event: React.KeyboardEvent<HTMLInputElement>
@@ -109,22 +110,20 @@ function TypeForm(props: any) {
         if (typeof props.onTextComplete === "function") {
             props.onTextComplete({
                 accuracy: (100 - (100 / (textToType.length / errorsAmount))).toFixed(2),
-                time: (Date.now() - startTime) / 1000
             });
         }
-        setResultTime((Date.now() - startTime) / 1000);
     }
 
     const onClick = () => {
+        
         userInputRef.current?.focus();
         if (typeof props.onClick === 'function') {
             props.onClick();
         }
-        setStartTime(() => Date.now());
-        console.log(startTime);
     };
 
     const onUserInputFocus = () => {
+
         setIsUserInputFocused(true);
         if (typeof props.onFocus === 'function') {
             props.onFocus();
@@ -140,14 +139,7 @@ function TypeForm(props: any) {
 
     return (
         <React.Fragment>
-            <div style={{ fontSize: props.fontSize, color: "#888888" }} className={`flex flex-col  place-items-center justify-center h-full typeForm ${isUserInputFocused ? "" : "blur"} leading-none`} onClick={onClick}>
-
-
-                <div className="resultWrapper">
-                    <div className="resultElement">{(currentTime / 1000).toFixed(1)}s.</div>
-                    <div className="resultElement">acc. {(100 - (100 / (textToType.length / errorsAmount))).toFixed(2)}%</div>
-                </div>
-
+            <div style={{ fontSize: props.fontSize, color: "#888888" }} onClick={onClick}>
                 <div className="overflow-hidden">
                     <div>
                         <input
@@ -162,9 +154,10 @@ function TypeForm(props: any) {
                             onFocus={onUserInputFocus}
                             onBlur={onUserInputBlur}
                             ref={userInputRef}
+                            id="TypeFormInput"
                         />
                     </div>
-                    <div className="break-words">
+                    <div className="break-words leading-none text-center">
                         <span style={{ color: "#ffffff" }}>{commitedText}</span>
                         {createErrorMask(userInputText, textParts[currentPart])}
                         {textLeftToType.replace(textParts[currentPart], "")}

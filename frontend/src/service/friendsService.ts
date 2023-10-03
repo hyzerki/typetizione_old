@@ -3,7 +3,7 @@ import $api from "../http";
 export default class FriendsService {
 
     static async  createFriendRequest(player_id: number) {
-        return $api.post("/friend/add", { id: player_id });
+        return $api.post("/friend/add", { id: player_id },{});
     }
 
     static async  acceptFriendRequest(player_id: number) {

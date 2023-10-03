@@ -24,7 +24,7 @@ function CurrentPlayerInfo() {
                     Профиль недоступен
                 </div>
                 <div className="p-5">
-                <Link className="btn-green" to={"/auth/login"}>Войти</Link>
+                    <Link className="btn-green" to={"/auth/login"}>Войти</Link>
                 </div>
             </div>
         );
