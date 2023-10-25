@@ -11,6 +11,6 @@
   }
 
   .glass{
-    @apply bg-white/10 backdrop-blur-sm
+    @apply bg-white/10 backdrop-blur-lg
   }
 }

@@ -25,7 +25,7 @@ function MainPage() {
             <Fragment>
                 {
                     recentMatches.map((match: any) => (
-                        <div className={`${match.rating_gain > 0 ? "bg-green-700/50" : "bg-red-700/50"}  text-lg overflow-clip flex gap-x-2 flex-row`}>
+                        <div key={match.game_id} className={`${match.rating_gain > 0 ? "bg-green-700/50" : "bg-red-700/50"}  text-lg overflow-clip flex gap-x-2 flex-row`}>
                             <div>{new Date(match.game.date_time).toLocaleString()}</div>
                             <div>{match.accuracy}</div>
                             <div>{match.game.text_to_type.text_language}</div>

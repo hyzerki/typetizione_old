@@ -8,7 +8,7 @@ import PlayerService from "../../service/playerService";
 import Player from "../../model/player";
 import useInterval from "../../hooks/useInterval";
 
-export default function GamePage() {
+export default function LeaderBoardPage() {
     const [rating, setRating] = useState<any[]>([]);
     const [cpm, setCpm] = useState<any[]>([]);
 
@@ -28,7 +28,7 @@ export default function GamePage() {
                         <div className="shrink-0 h-[0] grow-[20] m-4 text-white bg-neutral-700 overflow-auto text-2xl">
                             {rating.map((entry, index) => (
 
-                                <div className="">
+                                <div className="" key={index}>
                                     <Link to={`/player/${entry.id}`}>
                                         <div className="flex gap-2">
                                             <div>{index + 1}</div>
@@ -46,7 +46,7 @@ export default function GamePage() {
                     <div className="h-full flex flex-col">
                         <div className="shrink-0 h-[0] grow-[20] m-4 text-white bg-neutral-700 overflow-auto text-2xl">
                             {cpm.map((entry, index) => (
-                                <div className="">
+                                <div className="" key={index}>
                                 <Link to={`/player/${entry.player.id}`}>
                                     <div className="flex gap-2">
                                     <div>{index + 1}</div>

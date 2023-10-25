@@ -61,7 +61,6 @@ function Friendlist() {
         useLayoutEffect(() => {
             setLoading(true);
             playerService.getPlayerById(props.invite).then(data => {
-                console.log("invitor: ", data);
                 setInvitor(data);
                 setLoading(false);
             });

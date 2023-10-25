@@ -78,7 +78,7 @@ function MenuPage() {
     }
 
     return (
-        <div className="h-screen flex flex-col bg-[url('/topographic.jpg')]">
+        <div className="h-screen flex flex-col bg-[url('/wavesCycle.gif')]">
             {
                 !!currentPlayer && socketEror ?
                     <div className="text-neutral-100 bg-red-800">Подключение к сети typetizione</div>
